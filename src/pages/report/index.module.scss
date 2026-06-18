@@ -1,0 +1,357 @@
+@use '@/styles/variables.scss' as *;
+
+.pageContainer {
+  padding: 0 0 60rpx;
+}
+
+.heroCard {
+  margin: $spacing-md $page-padding;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%);
+  border-radius: $radius-xl;
+  border: 2rpx solid #ffd591;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '🤝';
+    position: absolute;
+    right: -20rpx;
+    top: -20rpx;
+    font-size: 140rpx;
+    opacity: 0.15;
+  }
+}
+
+.heroTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: #d46b08;
+  margin-bottom: $spacing-xs;
+  position: relative;
+  z-index: 1;
+}
+
+.heroSubtitle {
+  font-size: $font-size-sm;
+  color: #d48806;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+.heroStats {
+  display: flex;
+  gap: $spacing-lg;
+  margin-top: $spacing-lg;
+  position: relative;
+  z-index: 1;
+}
+
+.statItem {
+  flex: 1;
+  padding: $spacing-md;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: $radius-md;
+  text-align: center;
+}
+
+.statValue {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: #d46b08;
+}
+
+.statLabel {
+  font-size: $font-size-xs;
+  color: #873800;
+  margin-top: 4rpx;
+}
+
+.formSection {
+  margin: $spacing-md $page-padding;
+  padding: $spacing-xl;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '';
+    width: 8rpx;
+    height: 32rpx;
+    background: linear-gradient(180deg, $color-warning 0%, #ffa940 100%);
+    border-radius: 4rpx;
+    margin-right: $spacing-sm;
+  }
+}
+
+.formGroup {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.formLabel {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+  display: flex;
+  align-items: center;
+
+  .required {
+    color: $color-error;
+    margin-right: 4rpx;
+  }
+}
+
+.formLabelTip {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-normal;
+  margin-left: $spacing-sm;
+}
+
+.channelOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.channelOption {
+  padding: 16rpx 28rpx;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-base;
+
+  &.active {
+    background: $color-bg-primary-soft;
+    border-color: $color-primary;
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.textareaField {
+  width: 100%;
+  min-height: 180rpx;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: 1.6;
+  box-sizing: border-box;
+  transition: border-color $transition-base;
+
+  &:focus {
+    border-color: $color-primary;
+    background: $color-bg-card;
+  }
+}
+
+.inputField {
+  width: 100%;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  box-sizing: border-box;
+  transition: border-color $transition-base;
+
+  &:focus {
+    border-color: $color-primary;
+    background: $color-bg-card;
+  }
+}
+
+.anonymousBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  background: #f6ffed;
+  border-radius: $radius-md;
+  border: 2rpx solid #b7eb8f;
+}
+
+.anonymousText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+
+  strong {
+    color: $color-success;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.toggleSwitch {
+  width: 88rpx;
+  height: 48rpx;
+  border-radius: $radius-round;
+  background: $color-success;
+  position: relative;
+  transition: all $transition-base;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 4rpx;
+    top: 4rpx;
+    width: 40rpx;
+    height: 40rpx;
+    background: $color-text-white;
+    border-radius: $radius-round;
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.15);
+  }
+}
+
+.submitButton {
+  @include button-reset;
+  width: 100%;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, $color-warning 0%, #ffa940 100%);
+  color: $color-text-white;
+  border-radius: $radius-button;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  box-shadow: 0 6rpx 20rpx rgba(250, 140, 22, 0.3);
+  transition: all $transition-base;
+  margin-top: $spacing-lg;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+
+  &.disabled {
+    background: $color-text-disabled;
+    box-shadow: none;
+  }
+}
+
+.historySection {
+  margin: $spacing-xl $page-padding 0;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.historyCard {
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+}
+
+.historyTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.historyContent {
+  flex: 1;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  line-height: 1.6;
+  margin-right: $spacing-sm;
+  @include text-ellipsis-multi(2);
+}
+
+.statusBadge {
+  padding: 6rpx 16rpx;
+  border-radius: $radius-round;
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+
+  &.pending {
+    background: #fff7e6;
+    color: #d46b08;
+  }
+
+  &.reviewed {
+    background: #e6f7ff;
+    color: #0050b3;
+  }
+
+  &.resolved {
+    background: #f6ffed;
+    color: #389e0d;
+  }
+}
+
+.historyMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 2rpx dashed $color-divider;
+}
+
+.historyChannel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.historyTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.emptyState {
+  padding: 80rpx 40rpx;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 160rpx;
+  height: 160rpx;
+  margin: 0 auto $spacing-lg;
+  background: $color-bg-primary-soft;
+  border-radius: $radius-round;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80rpx;
+}
+
+.emptyTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.emptyDesc {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  line-height: 1.6;
+}

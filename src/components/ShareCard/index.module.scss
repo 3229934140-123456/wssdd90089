@@ -1,0 +1,161 @@
+@use '@/styles/variables.scss' as *;
+
+.cardWrap {
+  background: linear-gradient(160deg, #ffffff 0%, $color-bg-primary-soft 100%);
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  box-shadow: 0 8rpx 32rpx rgba(43, 164, 113, 0.15);
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -60rpx;
+    right: -60rpx;
+    width: 200rpx;
+    height: 200rpx;
+    background: radial-gradient(circle, rgba(82, 196, 26, 0.15) 0%, transparent 70%);
+    border-radius: $radius-round;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-xl;
+  position: relative;
+}
+
+.cardLogo {
+  width: 72rpx;
+  height: 72rpx;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  border-radius: 20rpx;
+  color: $color-text-white;
+  font-weight: $font-weight-bold;
+  font-size: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: $spacing-md;
+  box-shadow: 0 4rpx 12rpx rgba(43, 164, 113, 0.3);
+}
+
+.cardTitleArea {
+  flex: 1;
+}
+
+.cardAppName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+.cardSub {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.rumorBox {
+  background: rgba(245, 34, 45, 0.06);
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  border: 2rpx solid rgba(245, 34, 45, 0.1);
+}
+
+.boxLabel {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-sm;
+
+  &.rumor {
+    background: $color-error;
+    color: $color-text-white;
+  }
+
+  &.truth {
+    background: $color-primary;
+    color: $color-text-white;
+  }
+}
+
+.boxContent {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: 1.7;
+}
+
+.truthBox {
+  background: rgba(43, 164, 113, 0.08);
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-xl;
+  border: 2rpx solid rgba(43, 164, 113, 0.15);
+}
+
+.tipBox {
+  background: #fffbe6;
+  border-radius: $radius-md;
+  padding: $spacing-lg;
+  border-left: 8rpx solid $color-warning;
+  margin-bottom: $spacing-xl;
+}
+
+.tipTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-warning;
+  margin-bottom: $spacing-xs;
+}
+
+.tipContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.7;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: $spacing-lg;
+  border-top: 2rpx dashed $color-border;
+  position: relative;
+}
+
+.sourceText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.qrPlaceholder {
+  width: 100rpx;
+  height: 100rpx;
+  background: repeating-linear-gradient(
+    45deg,
+    #e5e7eb,
+    #e5e7eb 8rpx,
+    #ffffff 8rpx,
+    #ffffff 16rpx
+  );
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.scanText {
+  text-align: right;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-right: $spacing-sm;
+}

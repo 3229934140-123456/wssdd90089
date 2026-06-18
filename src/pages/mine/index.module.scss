@@ -1,0 +1,309 @@
+@use '@/styles/variables.scss' as *;
+
+.pageContainer {
+  padding: 0 0 60rpx;
+}
+
+.profileHeader {
+  padding: 56rpx $page-padding 80rpx;
+  background: linear-gradient(160deg, $color-primary 0%, $color-primary-light 60%, #95DE64 100%);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    right: -40rpx;
+    width: 300rpx;
+    height: 300rpx;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: $radius-round;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -40rpx;
+    left: 40rpx;
+    width: 180rpx;
+    height: 180rpx;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: $radius-round;
+  }
+}
+
+.profileRow {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-round;
+  background: linear-gradient(135deg, #ffffff 0%, #e0f7e9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  color: $color-primary;
+  font-weight: $font-weight-bold;
+  border: 4rpx solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+  margin-right: $spacing-lg;
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.userName {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: 8rpx;
+}
+
+.userRole {
+  display: inline-flex;
+  padding: 6rpx 18rpx;
+  background: rgba(255, 255, 255, 0.25);
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  border-radius: $radius-round;
+  backdrop-filter: blur(10rpx);
+}
+
+.statsCard {
+  margin: -40rpx $page-padding 0;
+  padding: $spacing-lg $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+  display: flex;
+}
+
+.statItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-xs 0;
+
+  & + & {
+    border-left: 2rpx solid $color-divider;
+  }
+}
+
+.statNum {
+  font-size: 36rpx;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+  margin-bottom: 4rpx;
+}
+
+.statName {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.menuSection {
+  margin: $spacing-xl $page-padding 0;
+}
+
+.sectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+  padding-left: $spacing-sm;
+}
+
+.menuCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-lg $spacing-xl;
+  transition: background $transition-fast;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+
+  & + & {
+    border-top: 2rpx solid $color-divider;
+  }
+}
+
+.menuIcon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  margin-right: $spacing-md;
+  color: $color-text-white;
+  font-weight: $font-weight-bold;
+
+  &.green {
+    background: linear-gradient(135deg, #52C41A 0%, #73d13d 100%);
+  }
+
+  &.blue {
+    background: linear-gradient(135deg, #1890FF 0%, #40a9ff 100%);
+  }
+
+  &.orange {
+    background: linear-gradient(135deg, #FA8C16 0%, #ffa940 100%);
+  }
+
+  &.purple {
+    background: linear-gradient(135deg, #722ED1 0%, #9254de 100%);
+  }
+
+  &.red {
+    background: linear-gradient(135deg, #F5222D 0%, #ff4d4f 100%);
+  }
+
+  &.gray {
+    background: linear-gradient(135deg, #8C8C8C 0%, #a6a6a6 100%);
+  }
+}
+
+.menuContent {
+  flex: 1;
+}
+
+.menuTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
+.menuDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.menuArrow {
+  font-size: $font-size-lg;
+  color: $color-text-disabled;
+  font-weight: $font-weight-light;
+}
+
+.volunteerBanner {
+  margin: $spacing-xl $page-padding 0;
+  padding: $spacing-xl;
+  background: linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%);
+  border-radius: $radius-xl;
+  border: 2rpx solid #d3adf7;
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '💚';
+    position: absolute;
+    right: 20rpx;
+    bottom: -20rpx;
+    font-size: 120rpx;
+    opacity: 0.15;
+  }
+}
+
+.bannerTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+  color: #531dab;
+  margin-bottom: $spacing-xs;
+}
+
+.bannerDesc {
+  font-size: $font-size-sm;
+  color: #722ed1;
+  line-height: 1.6;
+  margin-bottom: $spacing-md;
+}
+
+.bannerBtn {
+  @include button-reset;
+  display: inline-flex;
+  padding: 0 40rpx;
+  height: $button-height-md;
+  background: linear-gradient(135deg, $color-channel-article 0%, #9254de 100%);
+  color: $color-text-white;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.97);
+  }
+}
+
+.historySection {
+  margin: $spacing-xl $page-padding 0;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-divider;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.historyIcon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-md;
+  background: $color-bg-primary-soft;
+  color: $color-primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: $font-weight-bold;
+  margin-right: $spacing-md;
+}
+
+.historyInfo {
+  flex: 1;
+  margin-right: $spacing-md;
+}
+
+.historyText {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  @include text-ellipsis;
+}
+
+.historyTime {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}

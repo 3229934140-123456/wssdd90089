@@ -1,0 +1,43 @@
+// ============================================
+// 社区谣言识别小程序 - 主题配色变量
+// ============================================
+
+// 品牌主题色：温暖翠绿色，代表信任、安全、社区关怀
+$color-primary: #2BA471;
+$color-primary-light: #52C41A;
+$color-primary-dark: #1F7A54;
+
+// 功能色
+$color-success: #52C41A;
+$color-warning: #FA8C16;
+$color-error: #F5222D;
+$color-info: #1890FF;
+
+// 业务色：传播渠道分类
+$color-channel-group: #1890FF;      // 本地群聊 - 蓝色
+$color-channel-video: #FF4D4F;      // 短视频 - 红色
+$color-channel-article: #722ED1;    // 公众号 - 紫色
+$color-channel-moment: #52C41A;     // 朋友圈 - 绿色
+$color-channel-other: #8C8C8C;      // 其他 - 灰色
+
+// 风险等级色
+$color-risk-low: #52C41A;           // 低风险·已辟谣
+$color-risk-medium: #FA8C16;        // 中风险·待核实
+$color-risk-high: #F5222D;          // 高风险·确认谣言
+
+// 背景色：温暖米白系，营造社区关怀氛围
+$color-bg-page: #FFF9F0;
+$color-bg-card: #FFFFFF;
+$color-bg-hover: #FFF0D6;
+$color-bg-primary-soft: #E8F8EE;
+
+// 文本色：高对比度确保长辈可读
+$color-text-primary: #1F2937;
+$color-text-secondary: #4B5563;
+$color-text-tertiary: #9CA3AF;
+$color-text-disabled: #D1D5DB;
+$color-text-white: #FFFFFF;
+
+// 边框色
+$color-border: #E5E7EB;
+$color-divider: #F3F4F6;

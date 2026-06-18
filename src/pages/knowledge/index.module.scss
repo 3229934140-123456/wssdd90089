@@ -1,0 +1,312 @@
+@use '@/styles/variables.scss' as *;
+
+.pageContainer {
+  padding: 0 0 60rpx;
+}
+
+.headerSection {
+  padding: $spacing-lg $page-padding $spacing-md;
+  background: linear-gradient(180deg, $color-bg-primary-soft 0%, $color-bg-page 100%);
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-button;
+  border: 2rpx solid $color-border;
+  margin-bottom: $spacing-md;
+}
+
+.searchIcon {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: $radius-round;
+  border: 4rpx solid $color-primary;
+  margin-right: $spacing-sm;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -10rpx;
+    bottom: -6rpx;
+    width: 14rpx;
+    height: 4rpx;
+    background: $color-primary;
+    border-radius: 2rpx;
+    transform: rotate(45deg);
+  }
+}
+
+.searchInput {
+  flex: 1;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.categoryScroll {
+  white-space: nowrap;
+  margin: 0 -$page-padding;
+  padding: 0 $page-padding;
+}
+
+.categoryItem {
+  @include scroll-x-item(auto);
+  padding: 12rpx 28rpx;
+  margin-right: $spacing-sm;
+  background: $color-bg-card;
+  border-radius: $radius-round;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  border: 2rpx solid transparent;
+  transition: all $transition-base;
+  margin-bottom: $spacing-xs;
+
+  &.active {
+    background: $color-primary;
+    color: $color-text-white;
+    border-color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.officialBanner {
+  margin: $spacing-md $page-padding;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+  border-radius: $radius-lg;
+  border-left: 8rpx solid $color-info;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bannerContent {
+  flex: 1;
+  margin-right: $spacing-md;
+}
+
+.bannerTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: #0050b3;
+  margin-bottom: 4rpx;
+}
+
+.bannerDesc {
+  font-size: $font-size-xs;
+  color: #1890ff;
+}
+
+.bannerBadge {
+  padding: 8rpx 20rpx;
+  background: $color-info;
+  color: $color-text-white;
+  border-radius: $radius-round;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.listSection {
+  padding: 0 $page-padding;
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.listTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '';
+    width: 8rpx;
+    height: 32rpx;
+    background: linear-gradient(180deg, $color-info 0%, #91caff 100%);
+    border-radius: 4rpx;
+    margin-right: $spacing-sm;
+  }
+}
+
+.listCount {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.knowledgeList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.knowledgeCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.99);
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+.cardCover {
+  width: 100%;
+  height: 320rpx;
+  background: $color-bg-hover;
+}
+
+.cardBody {
+  padding: $spacing-lg;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.cardTitle {
+  flex: 1;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1.4;
+  margin-right: $spacing-sm;
+}
+
+.officialTag {
+  padding: 4rpx 14rpx;
+  background: linear-gradient(135deg, #1890ff 0%, #69c0ff 100%);
+  color: $color-text-white;
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+}
+
+.cardSummary {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  @include text-ellipsis-multi(2);
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-md;
+  padding-top: $spacing-sm;
+  border-top: 2rpx dashed $color-divider;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+
+  &::before {
+    content: '';
+    width: 8rpx;
+    height: 8rpx;
+    background: $color-border;
+    border-radius: $radius-round;
+    margin-right: 8rpx;
+  }
+
+  &.category::before {
+    background: $color-channel-article;
+  }
+
+  &.source::before {
+    background: $color-primary;
+  }
+
+  &.views::before {
+    background: $color-warning;
+  }
+}
+
+.rumorSection {
+  margin-top: $spacing-xl;
+  padding: 0 $page-padding;
+}
+
+.rumorList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.rumorCard {
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  border-left: 8rpx solid $color-error;
+  box-shadow: $shadow-card;
+
+  &.medium {
+    border-left-color: $color-warning;
+  }
+
+  &.low {
+    border-left-color: $color-success;
+  }
+}
+
+.rumorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.rumorTitle {
+  flex: 1;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1.4;
+  margin-right: $spacing-sm;
+  @include text-ellipsis;
+}
+
+.rumorTruth {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  @include text-ellipsis-multi(2);
+  padding: $spacing-sm $spacing-md;
+  background: $color-bg-primary-soft;
+  border-radius: $radius-sm;
+  margin-top: $spacing-sm;
+}
+
+.rumorMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 2rpx dashed $color-divider;
+}

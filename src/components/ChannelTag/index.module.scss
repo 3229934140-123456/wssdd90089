@@ -1,0 +1,32 @@
+@use '@/styles/variables.scss' as *;
+
+.channelTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 16rpx;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-text-white;
+  white-space: nowrap;
+
+  &.group {
+    background-color: $color-channel-group;
+  }
+
+  &.video {
+    background-color: $color-channel-video;
+  }
+
+  &.article {
+    background-color: $color-channel-article;
+  }
+
+  &.moment {
+    background-color: $color-channel-moment;
+  }
+
+  &.other {
+    background-color: $color-channel-other;
+  }
+}

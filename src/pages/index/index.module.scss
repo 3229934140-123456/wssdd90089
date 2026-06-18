@@ -1,0 +1,324 @@
+@use '@/styles/variables.scss' as *;
+
+.pageContainer {
+  padding: 0;
+  padding-bottom: 60rpx;
+}
+
+.heroSection {
+  padding: 48rpx $page-padding 56rpx;
+  background: linear-gradient(160deg, $color-primary 0%, $color-primary-light 50%, #95DE64 100%);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -80rpx;
+    right: -40rpx;
+    width: 260rpx;
+    height: 260rpx;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: $radius-round;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -60rpx;
+    left: -30rpx;
+    width: 180rpx;
+    height: 180rpx;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: $radius-round;
+  }
+}
+
+.heroTitle {
+  font-size: 44rpx;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  line-height: 1.4;
+  margin-bottom: $spacing-sm;
+  position: relative;
+  z-index: 1;
+}
+
+.heroSubtitle {
+  font-size: $font-size-md;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+.heroBadges {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-lg;
+  position: relative;
+  z-index: 1;
+  flex-wrap: wrap;
+}
+
+.heroBadge {
+  padding: 8rpx 20rpx;
+  background: rgba(255, 255, 255, 0.2);
+  color: $color-text-white;
+  font-size: $font-size-xs;
+  border-radius: $radius-round;
+  backdrop-filter: blur(10rpx);
+}
+
+.inputSection {
+  padding: 0 $page-padding;
+  margin-top: -32rpx;
+  position: relative;
+  z-index: 2;
+}
+
+.inputCard {
+  background: $color-bg-card;
+  border-radius: $radius-xl;
+  padding: $spacing-xl;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.inputCardTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '';
+    width: 8rpx;
+    height: 32rpx;
+    background: linear-gradient(180deg, $color-primary 0%, $color-primary-light 100%);
+    border-radius: 4rpx;
+    margin-right: $spacing-sm;
+  }
+}
+
+.inputOptions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.inputOption {
+  flex: 1;
+  padding: $spacing-lg $spacing-sm;
+  background: $color-bg-primary-soft;
+  border-radius: $radius-lg;
+  text-align: center;
+  transition: all $transition-base;
+  border: 2rpx solid transparent;
+
+  &:active {
+    transform: scale(0.96);
+    background: #d4f1df;
+    border-color: $color-primary;
+  }
+}
+
+.inputOptionIcon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-lg;
+  margin: 0 auto $spacing-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  font-weight: $font-weight-bold;
+  box-shadow: 0 4rpx 16rpx rgba(43, 164, 113, 0.25);
+}
+
+.inputOptionLabel {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.inputOptionDesc {
+  font-size: 22rpx;
+  color: $color-text-tertiary;
+}
+
+.textInputArea {
+  margin-top: $spacing-lg;
+  padding: $spacing-lg;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  min-height: 200rpx;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: 1.6;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color $transition-base;
+
+  &:focus {
+    border-color: $color-primary;
+    background: $color-bg-card;
+  }
+}
+
+.submitBtn {
+  @include button-reset;
+  margin-top: $spacing-lg;
+  width: 100%;
+  height: $button-height-lg;
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
+  color: $color-text-white;
+  border-radius: $radius-button;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  box-shadow: 0 6rpx 20rpx rgba(43, 164, 113, 0.3);
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+
+  &.disabled {
+    background: $color-text-disabled;
+    box-shadow: none;
+  }
+}
+
+.section {
+  margin-top: $spacing-xl;
+  padding: 0 $page-padding;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '';
+    width: 8rpx;
+    height: 32rpx;
+    background: linear-gradient(180deg, $color-warning 0%, #ffa940 100%);
+    border-radius: 4rpx;
+    margin-right: $spacing-sm;
+  }
+}
+
+.sectionMore {
+  font-size: $font-size-sm;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+}
+
+.hotList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.hotCard {
+  padding: $spacing-lg;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  border: 2rpx solid $color-divider;
+  transition: all $transition-base;
+
+  &:active {
+    background: $color-bg-hover;
+    transform: scale(0.99);
+  }
+}
+
+.hotCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.hotCardTitle {
+  flex: 1;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1.5;
+  margin-right: $spacing-sm;
+  @include text-ellipsis;
+}
+
+.hotCardDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  @include text-ellipsis-multi(2);
+}
+
+.hotCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-md;
+  padding-top: $spacing-sm;
+  border-top: 2rpx dashed $color-divider;
+}
+
+.hotCardCategory {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.hotCardViews {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.tipsCard {
+  margin-top: $spacing-md;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, #fffbe6 0%, #fff7e6 100%);
+  border-radius: $radius-lg;
+  border: 2rpx solid #ffe58f;
+}
+
+.tipsTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-warning;
+  margin-bottom: $spacing-sm;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '💡';
+    margin-right: 8rpx;
+  }
+}
+
+.tipsList {
+  padding-left: $spacing-lg;
+}
+
+.tipsItem {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.8;
+}
