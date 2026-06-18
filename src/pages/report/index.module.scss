@@ -137,6 +137,9 @@
   font-size: $font-size-sm;
   color: $color-text-secondary;
   transition: all $transition-base;
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
 
   &.active {
     background: $color-bg-primary-soft;
@@ -145,9 +148,29 @@
     font-weight: $font-weight-medium;
   }
 
+  &.activeOwner {
+    background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+    border-color: #1890FF;
+    color: #0050b3;
+    font-weight: $font-weight-semibold;
+  }
+
+  &.activeFamily {
+    background: linear-gradient(135deg, #fff0f6 0%, #ffadd2 100%);
+    border-color: #eb2f96;
+    color: #c41d7f;
+    font-weight: $font-weight-semibold;
+  }
+
   &:active {
     transform: scale(0.97);
   }
+}
+
+.activeMark {
+  font-size: 22rpx;
+  font-weight: bold;
+  margin-left: 4rpx;
 }
 
 .textareaField {
@@ -319,6 +342,25 @@
 .historyChannel {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
+}
+
+.historyChannelLabel {
+  padding: 4rpx 16rpx;
+  border-radius: $radius-round;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+
+  &.labelOwner {
+    background: #e6f7ff;
+    color: #0050b3;
+    border: 2rpx solid #91d5ff;
+  }
+
+  &.labelFamily {
+    background: #fff0f6;
+    color: #c41d7f;
+    border: 2rpx solid #ffadd2;
+  }
 }
 
 .historyTime {

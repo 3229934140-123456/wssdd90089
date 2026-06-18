@@ -92,6 +92,90 @@
   z-index: 1;
 }
 
+.inputTypeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 20rpx;
+  border-radius: $radius-round;
+  margin-bottom: $spacing-md;
+  margin-left: $spacing-sm;
+  position: relative;
+  z-index: 1;
+  vertical-align: middle;
+}
+
+.inputTypeBadgeText {
+  font-size: $font-size-xs;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}
+
+.inputTypeRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 2rpx dashed $color-divider;
+}
+
+.inputTypeIcon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-white;
+  font-size: 36rpx;
+  font-weight: $font-weight-bold;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.inputTypeInfo {
+  flex: 1;
+}
+
+.inputTypeLabel {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  display: block;
+}
+
+.submittedWrap {
+  margin-top: $spacing-sm;
+  margin-bottom: $spacing-sm;
+  padding: $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-divider;
+}
+
+.submittedImage {
+  width: 100%;
+  border-radius: $radius-sm;
+  margin-top: $spacing-sm;
+  background: #f5f5f5;
+  min-height: 200rpx;
+}
+
+.linkBox {
+  margin-top: $spacing-sm;
+  padding: $spacing-md;
+  background: $color-bg-card;
+  border-radius: $radius-sm;
+  border-left: 6rpx solid #722ED1;
+}
+
+.linkText {
+  font-size: $font-size-sm;
+  color: #722ED1;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
 .section {
   margin-top: $spacing-xl;
 }

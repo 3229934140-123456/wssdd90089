@@ -1,58 +1,120 @@
 import React, { useState } from 'react';
-import { View, Text, Textarea, Button } from '@tarojs/components';
+import { View, Text, Textarea, Input, Button, Image } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import RiskBadge from '@/components/RiskBadge';
 import { mockRumors } from '@/data/mockRumors';
 import { Rumor } from '@/types/rumor';
+import classnames from 'classnames';
+
+const STORAGE_KEY_IMAGE = 'local_last_image';
+const STORAGE_KEY_LINK = 'local_last_link';
 
 const IndexPage: React.FC = () => {
   const [inputText, setInputText] = useState('');
-  const [inputMode, setInputMode] = useState<'text' | null>(null);
+  const [inputLink, setInputLink] = useState('');
+  const [inputMode, setInputMode] = useState<'text' | 'link' | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string>('');
   const [hotRumors, setHotRumors] = useState<Rumor[]>([]);
 
   useDidShow(() => {
     setHotRumors(mockRumors.filter(r => r.riskLevel === 'high').slice(0, 4));
-    console.log('[首页] 加载热门谣言，共', hotRumors.length, '条');
   });
+
+  const matchRumorByText = (text: string): Rumor => {
+    const matched = mockRumors.find(r =>
+      r.keywords.some(k => text.toLowerCase().includes(k.toLowerCase()))
+    );
+    if (matched) return matched;
+    const randomIdx = Math.floor(Math.random() * mockRumors.length);
+    return mockRumors[randomIdx];
+  };
 
   const handleSubmitText = () => {
     if (!inputText.trim()) {
       Taro.showToast({ title: '请输入可疑内容', icon: 'none' });
       return;
     }
-    console.log('[首页] 提交文字识别：', inputText.substring(0, 50) + '...');
-    const matched = mockRumors.find(r =>
-      r.keywords.some(k => inputText.includes(k))
-    );
-    const rumorId = matched ? matched.id : mockRumors[0].id;
+    const rumor = matchRumorByText(inputText);
     Taro.navigateTo({
-      url: `/pages/result/index?id=${rumorId}&input=${encodeURIComponent(inputText)}`
+      url: `/pages/result/index?id=${rumor.id}&input=${encodeURIComponent(inputText)}&type=text`
     });
   };
 
   const handleChooseImage = () => {
-    console.log('[首页] 选择截图识别');
-    Taro.showToast({ title: '截图识别已模拟', icon: 'success' });
-    setTimeout(() => {
-      Taro.navigateTo({
-        url: `/pages/result/index?id=${mockRumors[4].id}&type=image`
-      });
-    }, 800);
+    Taro.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album'],
+      success: (res) => {
+        const tempFilePath = res.tempFilePaths[0] || res.tempFiles[0]?.path;
+        if (!tempFilePath) {
+          Taro.showToast({ title: '选取图片失败', icon: 'none' });
+          return;
+        }
+        setSelectedImage(tempFilePath);
+        try { Taro.setStorageSync(STORAGE_KEY_IMAGE, tempFilePath); } catch (e) {}
+        Taro.showLoading({ title: '正在识别截图…', mask: true });
+        setTimeout(() => {
+          Taro.hideLoading();
+          const imageKeywords = ['截图', '群聊', '图片', '转发'];
+          const rumor = matchRumorByText(imageKeywords.join(' ') + ' ' + mockRumors[Math.floor(Math.random() * mockRumors.length)].keywords[0]);
+          Taro.navigateTo({
+            url: `/pages/result/index?id=${rumor.id}&type=image&image=${encodeURIComponent(tempFilePath)}`
+          });
+        }, 1200);
+      },
+      fail: () => {
+        Taro.showToast({ title: '已取消选择', icon: 'none' });
+      }
+    });
   };
 
-  const handlePasteLink = () => {
-    console.log('[首页] 粘贴链接识别');
-    Taro.showToast({ title: '链接识别已模拟', icon: 'success' });
+  const handleSubmitLink = () => {
+    if (!inputLink.trim()) {
+      Taro.showToast({ title: '请粘贴文章或视频链接', icon: 'none' });
+      return;
+    }
+    const link = inputLink.trim();
+    try { Taro.setStorageSync(STORAGE_KEY_LINK, link); } catch (e) {}
+    Taro.showLoading({ title: '正在分析链接…', mask: true });
     setTimeout(() => {
+      Taro.hideLoading();
+      const domainKeywords: Record<string, string[]> = {
+        'weixin': ['微信', '公众号', '文章'],
+        'qq': ['QQ', '群聊'],
+        'douyin': ['抖音', '短视频'],
+        'kuaishou': ['快手', '短视频'],
+        'bilibili': ['B站', '视频'],
+        'weibo': ['微博', '热搜'],
+        'xiaohongshu': ['小红书', '笔记'],
+        'toutiao': ['头条', '新闻']
+      };
+      let extraKw: string[] = [];
+      for (const domain in domainKeywords) {
+        if (link.toLowerCase().includes(domain)) {
+          extraKw = domainKeywords[domain];
+          break;
+        }
+      }
+      const rumor = matchRumorByText(link + ' ' + extraKw.join(' '));
       Taro.navigateTo({
-        url: `/pages/result/index?id=${mockRumors[9].id}&type=link`
+        url: `/pages/result/index?id=${rumor.id}&type=link&link=${encodeURIComponent(link)}`
       });
-    }, 800);
+    }, 1000);
+  };
+
+  const handleTapMode = (mode: 'text' | 'link') => {
+    if (inputMode === mode) {
+      setInputMode(null);
+    } else {
+      setInputMode(mode);
+      if (mode === 'text') setInputLink('');
+      if (mode === 'link') setInputText('');
+    }
   };
 
   const handleTapHot = (rumorId: string) => {
-    console.log('[首页] 点击热门谣言：', rumorId);
     Taro.navigateTo({ url: `/pages/result/index?id=${rumorId}` });
   };
 
@@ -75,8 +137,8 @@ const IndexPage: React.FC = () => {
           <Text className={styles.inputCardTitle}>选择识别方式</Text>
           <View className={styles.inputOptions}>
             <View
-              className={styles.inputOption}
-              onClick={() => setInputMode(inputMode === 'text' ? null : 'text')}
+              className={classnames(styles.inputOption, inputMode === 'text' ? styles.inputOptionActive : '')}
+              onClick={() => handleTapMode('text')}
             >
               <View className={styles.inputOptionIcon}>文</View>
               <Text className={styles.inputOptionLabel}>粘贴文字</Text>
@@ -87,7 +149,10 @@ const IndexPage: React.FC = () => {
               <Text className={styles.inputOptionLabel}>上传截图</Text>
               <Text className={styles.inputOptionDesc}>群聊截图等</Text>
             </View>
-            <View className={styles.inputOption} onClick={handlePasteLink}>
+            <View
+              className={classnames(styles.inputOption, inputMode === 'link' ? styles.inputOptionActive : '')}
+              onClick={() => handleTapMode('link')}
+            >
               <View className={styles.inputOptionIcon}>链</View>
               <Text className={styles.inputOptionLabel}>分享链接</Text>
               <Text className={styles.inputOptionDesc}>文章/视频链接</Text>
@@ -111,6 +176,33 @@ const IndexPage: React.FC = () => {
                 开始识别
               </Button>
             </>
+          )}
+
+          {inputMode === 'link' && (
+            <>
+              <Input
+                className={styles.linkInputArea}
+                placeholder="粘贴文章链接、短视频链接… 例如 https://mp.weixin.qq.com/s/xxx"
+                value={inputLink}
+                onInput={(e) => setInputLink(e.detail.value)}
+                maxlength={500}
+                confirmType="done"
+              />
+              {selectedImage && inputMode === 'link' ? null : null}
+              <Button
+                className={`${styles.submitBtn} ${!inputLink.trim() ? styles.disabled : ''}`}
+                onClick={handleSubmitLink}
+              >
+                分析链接
+              </Button>
+            </>
+          )}
+
+          {selectedImage && inputMode !== 'link' && inputMode !== 'text' && (
+            <View className={styles.imagePreviewWrap}>
+              <Text className={styles.imagePreviewLabel}>上次识别的截图：</Text>
+              <Image src={selectedImage} className={styles.imagePreview} mode="aspectFill" />
+            </View>
           )}
         </View>
       </View>

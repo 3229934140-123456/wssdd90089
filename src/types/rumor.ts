@@ -56,6 +56,7 @@ export interface ReportRecord {
   id: string;
   content: string;
   channel: ChannelType;
+  channelLabel: string;
   channelDetail: string;
   reportedAt: string;
   status: 'pending' | 'reviewed' | 'resolved';

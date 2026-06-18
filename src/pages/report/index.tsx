@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, Textarea, Input, Button } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import ChannelTag from '@/components/ChannelTag';
 import { reportChannelOptions } from '@/data/mockChannels';
 import { ReportRecord, ChannelType } from '@/types/rumor';
 import classnames from 'classnames';
 
-const mockReports: ReportRecord[] = [
+const STORAGE_KEY_REPORTS = 'local_report_records';
+
+const defaultMockReports: ReportRecord[] = [
   {
     id: 'rep001',
     content: '小区业主群里有人发"自来水致癌"的消息，好多人在转',
     channel: 'group',
+    channelLabel: '小区业主群',
     channelDetail: '阳光花园3栋业主群',
     reportedAt: '2026-06-18 09:20',
     status: 'resolved'
@@ -20,6 +23,7 @@ const mockReports: ReportRecord[] = [
     id: 'rep002',
     content: '朋友圈看到有人发西瓜打甜味剂的视频',
     channel: 'moment',
+    channelLabel: '微信朋友圈',
     channelDetail: '',
     reportedAt: '2026-06-16 20:15',
     status: 'reviewed'
@@ -28,6 +32,7 @@ const mockReports: ReportRecord[] = [
     id: 'rep003',
     content: '家里老人在养生群看到"大蒜防新冠"的消息，还转发给了很多亲戚',
     channel: 'group',
+    channelLabel: '亲友家庭群',
     channelDetail: '快乐养生大家庭群',
     reportedAt: '2026-06-15 14:30',
     status: 'pending'
@@ -40,30 +45,58 @@ const statusText = {
   resolved: '已处理'
 };
 
+const loadReportsFromStorage = (): ReportRecord[] => {
+  try {
+    const data = Taro.getStorageSync(STORAGE_KEY_REPORTS);
+    if (data && Array.isArray(data) && data.length > 0) {
+      return data as ReportRecord[];
+    }
+  } catch (e) {
+    console.warn('[线索上报] 读取本地存储失败', e);
+  }
+  return defaultMockReports;
+};
+
 const ReportPage: React.FC = () => {
-  const [selectedChannel, setSelectedChannel] = useState<ChannelType | ''>('');
+  const [selectedChannelKey, setSelectedChannelKey] = useState<string>('');
   const [channelDetail, setChannelDetail] = useState('');
   const [content, setContent] = useState('');
-  const [reports, setReports] = useState<ReportRecord[]>(mockReports);
+  const [reports, setReports] = useState<ReportRecord[]>(defaultMockReports);
 
-  const canSubmit = selectedChannel && content.trim();
+  useDidShow(() => {
+    const stored = loadReportsFromStorage();
+    setReports(stored);
+  });
+
+  const selectedOption = reportChannelOptions.find(o => o.key === selectedChannelKey);
+  const canSubmit = selectedChannelKey && content.trim();
+
+  const persistReports = (nextReports: ReportRecord[]) => {
+    try {
+      Taro.setStorageSync(STORAGE_KEY_REPORTS, nextReports);
+    } catch (e) {
+      console.warn('[线索上报] 写入本地存储失败', e);
+    }
+  };
 
   const handleSubmit = () => {
-    if (!canSubmit) {
+    if (!canSubmit || !selectedOption) {
       Taro.showToast({ title: '请填写必要信息', icon: 'none' });
       return;
     }
-    console.log('[线索上报] 提交：', { channel: selectedChannel, channelDetail, content });
     const newReport: ReportRecord = {
       id: `rep${Date.now()}`,
       content: content.trim(),
-      channel: selectedChannel as ChannelType,
+      channel: selectedOption.value as ChannelType,
+      channelLabel: selectedOption.label,
       channelDetail: channelDetail.trim(),
       reportedAt: new Date().toLocaleString('zh-CN'),
       status: 'pending'
     };
-    setReports([newReport, ...reports]);
-    setSelectedChannel('');
+    const nextReports = [newReport, ...reports];
+    setReports(nextReports);
+    persistReports(nextReports);
+    setSelectedChannelKey('');
     setChannelDetail('');
     setContent('');
     Taro.showToast({ title: '感谢您的反馈！', icon: 'success' });
@@ -105,18 +138,21 @@ const ReportPage: React.FC = () => {
             <Text className={styles.formLabelTip}>（帮助社区管理员判断传播范围）</Text>
           </Text>
           <View className={styles.channelOptions}>
-            {reportChannelOptions.map((opt, idx) => (
+            {reportChannelOptions.map((opt) => (
               <View
-                key={idx}
+                key={opt.key}
                 className={classnames(
                   styles.channelOption,
-                  selectedChannel === opt.value && opt.label === reportChannelOptions.find(o => o.value === opt.value)?.label
-                    ? styles.active
-                    : ''
+                  selectedChannelKey === opt.key ? styles.active : '',
+                  opt.key === 'group_owner' && selectedChannelKey === opt.key ? styles.activeOwner : '',
+                  opt.key === 'group_family' && selectedChannelKey === opt.key ? styles.activeFamily : ''
                 )}
-                onClick={() => setSelectedChannel(opt.value)}
+                onClick={() => setSelectedChannelKey(opt.key)}
               >
                 {opt.label}
+                {opt.key === 'group_owner' && selectedChannelKey === opt.key && <Text className={styles.activeMark}>✓</Text>}
+                {opt.key === 'group_family' && selectedChannelKey === opt.key && <Text className={styles.activeMark}>✓</Text>}
+                {opt.key !== 'group_owner' && opt.key !== 'group_family' && selectedChannelKey === opt.key && <Text className={styles.activeMark}>✓</Text>}
               </View>
             ))}
           </View>
@@ -180,8 +216,19 @@ const ReportPage: React.FC = () => {
                   </Text>
                 </View>
                 <View className={styles.historyMeta}>
-                  <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx' }}>
+                  <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
                     <ChannelTag type={rep.channel} />
+                    {rep.channelLabel && (
+                      <Text
+                        className={classnames(
+                          styles.historyChannelLabel,
+                          rep.channelLabel === '小区业主群' ? styles.labelOwner : '',
+                          rep.channelLabel === '亲友家庭群' ? styles.labelFamily : ''
+                        )}
+                      >
+                        {rep.channelLabel}
+                      </Text>
+                    )}
                     {rep.channelDetail && (
                       <Text className={styles.historyChannel}>· {rep.channelDetail}</Text>
                     )}

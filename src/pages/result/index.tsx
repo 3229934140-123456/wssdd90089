@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Button } from '@tarojs/components';
+import { View, Text, Button, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
 import SpreadPath from '@/components/SpreadPath';
@@ -14,12 +14,20 @@ const riskLabelMap = {
   low: '✓ 低风险 · 不实信息'
 };
 
+const typeLabelMap: Record<string, { label: string; icon: string; color: string }> = {
+  text: { label: '文字识别', icon: '文', color: '#2BA471' },
+  image: { label: '截图识别', icon: '图', color: '#1890FF' },
+  link: { label: '链接识别', icon: '链', color: '#722ED1' }
+};
+
 const ResultPage: React.FC = () => {
   const router = useRouter();
-  const { id, input } = router.params;
+  const { id, input, type, image, link } = router.params;
   const rumor: Rumor | undefined = useMemo(() => {
     return mockRumors.find(r => r.id === id) || mockRumors[0];
   }, [id]);
+
+  const inputTypeInfo = type && typeLabelMap[type] ? typeLabelMap[type] : null;
 
   const [showShare, setShowShare] = useState(false);
 
@@ -74,11 +82,74 @@ const ResultPage: React.FC = () => {
           {rumor.riskLevel === 'high' ? '!' : rumor.riskLevel === 'medium' ? '?' : '✓'}
         </Text>
         <Text className={styles.riskLabel}>{riskLabelMap[rumor.riskLevel]}</Text>
+        {inputTypeInfo && (
+          <View className={styles.inputTypeBadge} style={{ background: inputTypeInfo.color }}>
+            <Text className={styles.inputTypeBadgeText}>
+              {inputTypeInfo.icon} {inputTypeInfo.label}
+            </Text>
+          </View>
+        )}
         <Text className={styles.riskTitle}>{rumor.title}</Text>
         <Text className={styles.riskDesc}>{rumor.summary}</Text>
       </View>
 
-      {input && (
+      {inputTypeInfo && (
+        <View className={styles.section}>
+          <Text className={styles.sectionTitle}>识别来源</Text>
+          <View className={styles.matchBox}>
+            <View className={styles.inputTypeRow}>
+              <View className={styles.inputTypeIcon} style={{ background: inputTypeInfo.color }}>
+                {inputTypeInfo.icon}
+              </View>
+              <View className={styles.inputTypeInfo}>
+                <Text className={styles.inputTypeLabel}>{inputTypeInfo.label}结果</Text>
+                <Text className={styles.matchLabel}>匹配度 {85 + Math.floor(Math.random() * 12)}%</Text>
+              </View>
+            </View>
+
+            {type === 'image' && image && (
+              <View className={styles.submittedWrap}>
+                <Text className={styles.matchTitle}>您提交的截图：</Text>
+                <Image
+                  src={decodeURIComponent(image)}
+                  className={styles.submittedImage}
+                  mode="widthFix"
+                />
+              </View>
+            )}
+
+            {type === 'link' && link && (
+              <View className={styles.submittedWrap}>
+                <Text className={styles.matchTitle}>您识别的链接：</Text>
+                <View className={styles.linkBox}>
+                  <Text className={styles.linkText}>{decodeURIComponent(link)}</Text>
+                </View>
+              </View>
+            )}
+
+            {type === 'text' && input && (
+              <View className={styles.submittedWrap}>
+                <Text className={styles.matchTitle}>您提交的内容：</Text>
+                <Text className={styles.matchDesc}>
+                  "{decodeURIComponent(input)}"
+                </Text>
+              </View>
+            )}
+
+            <View style={{ marginTop: '16rpx' }}>
+              <Text className={styles.matchTitle}>与以下高度相似：</Text>
+              <Text className={styles.matchDesc}>{rumor.content}</Text>
+              <View className={styles.keywordsRow}>
+                {rumor.keywords.map((kw, idx) => (
+                  <Text key={idx} className={styles.keywordTag}>#{kw}</Text>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {!inputTypeInfo && input && (
         <View className={styles.section}>
           <Text className={styles.sectionTitle}>识别匹配结果</Text>
           <View className={styles.matchBox}>

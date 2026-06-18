@@ -116,11 +116,58 @@
   transition: all $transition-base;
   border: 2rpx solid transparent;
 
+  &.inputOptionActive {
+    background: #d4f1df;
+    border-color: $color-primary;
+    transform: scale(0.98);
+  }
+
   &:active {
     transform: scale(0.96);
     background: #d4f1df;
     border-color: $color-primary;
   }
+}
+
+.linkInputArea {
+  margin-top: $spacing-lg;
+  padding: $spacing-lg;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx solid $color-border;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: 1.6;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color $transition-base;
+
+  &:focus {
+    border-color: $color-primary;
+    background: $color-bg-card;
+  }
+}
+
+.imagePreviewWrap {
+  margin-top: $spacing-lg;
+  padding: $spacing-md;
+  background: $color-bg-page;
+  border-radius: $radius-md;
+  border: 2rpx dashed $color-border;
+}
+
+.imagePreviewLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.imagePreview {
+  width: 100%;
+  height: 320rpx;
+  border-radius: $radius-sm;
+  background: #e8e8e8;
 }
 
 .inputOptionIcon {

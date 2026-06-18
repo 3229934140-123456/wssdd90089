@@ -28,11 +28,11 @@ export const channelList: Record<ChannelType, ChannelInfo> = {
   }
 };
 
-export const reportChannelOptions: { label: string; value: ChannelType }[] = [
-  { label: '小区业主群', value: 'group' },
-  { label: '亲友家庭群', value: 'group' },
-  { label: '短视频平台', value: 'video' },
-  { label: '微信公众号', value: 'article' },
-  { label: '微信朋友圈', value: 'moment' },
-  { label: '其他来源', value: 'other' }
+export const reportChannelOptions: { key: string; label: string; value: ChannelType }[] = [
+  { key: 'group_owner', label: '小区业主群', value: 'group' },
+  { key: 'group_family', label: '亲友家庭群', value: 'group' },
+  { key: 'video', label: '短视频平台', value: 'video' },
+  { key: 'article', label: '微信公众号', value: 'article' },
+  { key: 'moment', label: '微信朋友圈', value: 'moment' },
+  { key: 'other', label: '其他来源', value: 'other' }
 ];
