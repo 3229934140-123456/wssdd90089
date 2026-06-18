@@ -417,6 +417,33 @@
   line-height: 1.5;
 }
 
+.relatedSourceRow {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: $spacing-sm;
+  padding-top: $spacing-sm;
+  border-top: 2rpx dashed rgba(114, 46, 209, 0.2);
+  flex-wrap: wrap;
+}
+
+.relatedSourceTag {
+  padding: 2rpx 16rpx;
+  border-radius: $radius-round;
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+}
+
+.relatedSourceDetail {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+}
+
 .historyRelatedRow {
   display: flex;
   align-items: flex-start;
@@ -446,6 +473,35 @@
 .historyTime {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
+}
+
+.historySourceRow {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: $spacing-sm;
+  padding: $spacing-xs $spacing-md;
+  background: #fafafa;
+  border-radius: $radius-sm;
+  border-left: 6rpx solid #52c41a;
+  flex-wrap: wrap;
+}
+
+.historySourceTag {
+  padding: 2rpx 14rpx;
+  border-radius: $radius-round;
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+}
+
+.historySourceDetail {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  line-height: 1.5;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
 }
 
 .emptyState {

@@ -88,11 +88,44 @@ const ResultPage: React.FC = () => {
     const params: string[] = [];
     params.push(`rumorId=${rumor.id}`);
     params.push(`rumorTitle=${encodeURIComponent(rumor.title)}`);
-    if (input) params.push(`rumorContent=${encodeURIComponent(decodeURIComponent(input))}`);
-    if (type) params.push(`sourceType=${type}`);
+
+    const srcType: string = (type as string) || 'manual';
+    params.push(`sourceType=${srcType}`);
+
+    let contentForReport = '';
+    let sourceDetail = '';
+    if (type === 'text' && input) {
+      const raw = decodeURIComponent(input);
+      contentForReport = `在群里看到：「${raw.length > 80 ? raw.substring(0, 80) + '…' : raw}」。与《${rumor.title}》高度相似，已在多个群聊转发，疑似存在夸大或不实描述。`;
+      sourceDetail = `文字识别内容：${raw.length > 40 ? raw.substring(0, 40) + '…' : raw}`;
+    } else if (type === 'link' && link) {
+      const raw = decodeURIComponent(link);
+      const platformText = platformName ? decodeURIComponent(platformName) : '网络链接';
+      contentForReport = `在${platformText}看到这条链接：${raw.length > 80 ? raw.substring(0, 80) + '…' : raw}。标题与《${rumor.title}》高度相似，已有不少网友转发，传播速度较快，希望管理员核实。`;
+      sourceDetail = `${platformText}链接：${raw.length > 50 ? raw.substring(0, 50) + '…' : raw}`;
+    } else if (type === 'image' && (ocr || image)) {
+      const ocrList = ocrTexts;
+      const ocrText = ocrList.length > 0 ? ocrList.join('；') : '截图识别的群聊文字内容';
+      contentForReport = `收到一张群聊截图，里面内容提到「${ocrText.length > 60 ? ocrText.substring(0, 60) + '…' : ocrText}」。与《${rumor.title}》属于同一类不实信息，截图已在多个亲友群转发，需要留意是否已进入小区业主群。`;
+      sourceDetail = `截图OCR识别：${ocrText.length > 40 ? ocrText.substring(0, 40) + '…' : ocrText}`;
+    } else {
+      contentForReport = `谣言《${rumor.title}》在社区内传播，希望管理员留意。`;
+      sourceDetail = '从结果页手动发起补充渠道';
+    }
+    params.push(`rumorContent=${encodeURIComponent(contentForReport)}`);
+    if (sourceDetail) params.push(`sourceDetail=${encodeURIComponent(sourceDetail)}`);
+
+    const modalContent = type === 'text'
+      ? `识别结果：${rumor.title}\n\n内容来源：文字粘贴\n将自动带上以上信息，告诉管理员您是在哪里看到的。`
+      : type === 'link'
+        ? `识别结果：${rumor.title}\n\n内容来源：${platformName || '分享链接'}\n将自动带上链接和谣言标题，方便管理员快速定位。`
+        : type === 'image'
+          ? `识别结果：${rumor.title}\n\n内容来源：截图识别\n将自动带上截图OCR提取的文字内容。`
+          : `识别结果：${rumor.title}\n\n将自动带上这条谣言的标题。`;
+
     Taro.showModal({
       title: '补充传播渠道',
-      content: `识别结果：${rumor.title}\n\n将自动带上这条谣言的标题，帮助管理员快速定位。您是在哪里看到这条消息的？`,
+      content: modalContent,
       confirmText: '去上报',
       success: (res) => {
         if (res.confirm) {

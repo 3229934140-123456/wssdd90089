@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Button, Image } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
@@ -64,13 +64,19 @@ const MinePage: React.FC = () => {
 
   const buildResultUrl = (h: HistoryItem): string => {
     const params: string[] = [];
-    if (h.matchedRumor) params.push(`id=${h.matchedRumor}`);
+    if (h.matchedRumor) {
+      params.push(`id=${h.matchedRumor}`);
+    }
     if (h.inputType) params.push(`type=${h.inputType}`);
     if (h.inputText) params.push(`input=${encodeURIComponent(h.inputText)}`);
     if (h.inputLink) params.push(`link=${encodeURIComponent(h.inputLink)}`);
     if (h.inputImage) params.push(`image=${encodeURIComponent(h.inputImage)}`);
     if (h.ocrTexts && h.ocrTexts.length > 0) params.push(`ocr=${encodeURIComponent(h.ocrTexts.join('||'))}`);
     if (h.candidateRumors && h.candidateRumors.length > 0) params.push(`candidates=${encodeURIComponent(h.candidateRumors.join(','))}`);
+    // 如果没有匹配的谣言，取第一条mock兜底
+    if (!h.matchedRumor && mockRumors.length > 0) {
+      params.unshift(`id=${mockRumors[0].id}`);
+    }
     return `/pages/result/index?${params.join('&')}`;
   };
 

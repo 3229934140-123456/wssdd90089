@@ -20,12 +20,9 @@ const platformLinkPatterns: {
   {
     domain: /mp\.weixin\.qq\.com/i,
     name: '微信公众号',
-    biasKeywords: ['公众号', '文章', '微信'],
+    biasKeywords: ['文章', '公众号长文'],
     urlKeywords: (u) => {
-      const title = u.searchParams.get('__biz') || '';
-      const mid = u.searchParams.get('mid') || '';
-      const idx = u.searchParams.get('idx') || '';
-      return [title, mid, idx].filter(Boolean);
+      return [];
     }
   },
   {
@@ -128,14 +125,13 @@ const IndexPage: React.FC = () => {
         if (r.keywords.some(k => k.includes(pw) || pw.includes(k))) score += 8;
         if (r.content.includes(pw)) score += 5;
       });
-      if (r.spreadPath.origin) {
+      if (r.spreadPath?.origin) {
         const ch = r.spreadPath.origin.channel;
         if (platformBonus.includes('短视频') && ch === 'video') score += 6;
         if (platformBonus.includes('公众号') && ch === 'article') score += 6;
         if (platformBonus.includes('群聊') && ch === 'group') score += 6;
         if (platformBonus.includes('微博') && ch === 'moment') score += 6;
       }
-      r.mainNodes?.forEach?.(() => {});
       score += Math.random() * 3;
       return { rumor: r, score };
     });

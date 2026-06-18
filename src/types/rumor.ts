@@ -62,6 +62,8 @@ export interface ReportRecord {
   status: 'pending' | 'reviewed' | 'resolved';
   relatedRumorId?: string;
   relatedRumorTitle?: string;
+  sourceType?: 'text' | 'image' | 'link' | 'manual';
+  sourceDetail?: string;
 }
 
 export interface HistoryItem {

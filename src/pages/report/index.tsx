@@ -19,7 +19,9 @@ const defaultMockReports: ReportRecord[] = [
     reportedAt: '2026-06-18 09:20',
     status: 'resolved',
     relatedRumorId: 'r001',
-    relatedRumorTitle: '某地自来水致癌？别信！'
+    relatedRumorTitle: '某地自来水致癌？别信！',
+    sourceType: 'text',
+    sourceDetail: '文字识别内容：自来水喝了会致癌？'
   },
   {
     id: 'rep002',
@@ -30,7 +32,9 @@ const defaultMockReports: ReportRecord[] = [
     reportedAt: '2026-06-16 20:15',
     status: 'reviewed',
     relatedRumorId: 'r005',
-    relatedRumorTitle: '西瓜打了甜味剂？别再传了'
+    relatedRumorTitle: '西瓜打了甜味剂？别再传了',
+    sourceType: 'link',
+    sourceDetail: '抖音短视频链接：https://v.douyin.com/xxxxxxx'
   },
   {
     id: 'rep003',
@@ -41,7 +45,9 @@ const defaultMockReports: ReportRecord[] = [
     reportedAt: '2026-06-15 14:30',
     status: 'pending',
     relatedRumorId: 'r002',
-    relatedRumorTitle: '吃大蒜能防新冠？不靠谱'
+    relatedRumorTitle: '吃大蒜能防新冠？不靠谱',
+    sourceType: 'image',
+    sourceDetail: '截图OCR识别：【医生推荐】每天三瓣蒜 胜过打疫苗'
   }
 ];
 
@@ -76,6 +82,13 @@ const parseQuery = (query: string): Record<string, string> => {
   return result;
 };
 
+const sourceTypeMap: Record<string, { label: string; color: string; bg: string }> = {
+  text: { label: '文字识别来源', color: '#2BA471', bg: '#e6fff3' },
+  image: { label: '截图识别来源', color: '#1890FF', bg: '#e6f4ff' },
+  link: { label: '链接识别来源', color: '#722ED1', bg: '#f4efff' },
+  manual: { label: '手动上报', color: '#8C8C8C', bg: '#f5f5f5' }
+};
+
 const ReportPage: React.FC = () => {
   const router = useRouter();
   const [selectedChannelKey, setSelectedChannelKey] = useState<string>('');
@@ -83,6 +96,8 @@ const ReportPage: React.FC = () => {
   const [content, setContent] = useState('');
   const [reports, setReports] = useState<ReportRecord[]>(defaultMockReports);
   const [relatedRumor, setRelatedRumor] = useState<{ id: string; title: string; content?: string } | null>(null);
+  const [sourceType, setSourceType] = useState<string>('');
+  const [sourceDetail, setSourceDetail] = useState<string>('');
 
   useEffect(() => {
     const params = { ...router.params } as Record<string, string>;
@@ -95,6 +110,9 @@ const ReportPage: React.FC = () => {
       }
     } catch (e) {}
 
+    if (params.sourceType) setSourceType(params.sourceType);
+    if (params.sourceDetail) setSourceDetail(params.sourceDetail);
+
     if (params.rumorId || params.rumorTitle) {
       setRelatedRumor({
         id: params.rumorId || '',
@@ -102,7 +120,7 @@ const ReportPage: React.FC = () => {
         content: params.rumorContent || ''
       });
       if (params.rumorContent) {
-        setContent(`在${params.sourceType === 'link' ? '网上看到' : params.sourceType === 'image' ? '截图里看到' : '群里看到'}：${params.rumorTitle}。具体情况：${params.rumorContent}`);
+        setContent(params.rumorContent);
       } else if (params.rumorTitle) {
         setContent(`谣言内容与"${params.rumorTitle}"相关，在群里/网上被大量转发。`);
       }
@@ -128,13 +146,18 @@ const ReportPage: React.FC = () => {
   const handleClearRelated = () => {
     setRelatedRumor(null);
     setContent('');
+    setSourceType('');
+    setSourceDetail('');
   };
+
+  const currentSourceInfo = sourceTypeMap[sourceType] || null;
 
   const handleSubmit = () => {
     if (!canSubmit || !selectedOption) {
       Taro.showToast({ title: '请填写必要信息', icon: 'none' });
       return;
     }
+    const reportSourceType = (sourceType as ReportRecord['sourceType']) || 'manual';
     const newReport: ReportRecord = {
       id: `rep${Date.now()}`,
       content: content.trim(),
@@ -144,7 +167,9 @@ const ReportPage: React.FC = () => {
       reportedAt: new Date().toLocaleString('zh-CN'),
       status: 'pending',
       relatedRumorId: relatedRumor?.id || undefined,
-      relatedRumorTitle: relatedRumor?.title || undefined
+      relatedRumorTitle: relatedRumor?.title || undefined,
+      sourceType: reportSourceType,
+      sourceDetail: sourceDetail || undefined
     };
     const nextReports = [newReport, ...reports];
     setReports(nextReports);
@@ -153,6 +178,8 @@ const ReportPage: React.FC = () => {
     setChannelDetail('');
     setContent('');
     setRelatedRumor(null);
+    setSourceType('');
+    setSourceDetail('');
     Taro.showToast({ title: '感谢您的反馈！', icon: 'success' });
   };
 
@@ -197,6 +224,14 @@ const ReportPage: React.FC = () => {
                 <Text className={styles.relatedRumorContent}>
                   识别内容："{relatedRumor.content.length > 60 ? relatedRumor.content.substring(0, 60) + '…' : relatedRumor.content}"
                 </Text>
+              )}
+              {currentSourceInfo && sourceDetail && (
+                <View className={styles.relatedSourceRow}>
+                  <Text className={styles.relatedSourceTag} style={{ color: currentSourceInfo.color, background: currentSourceInfo.bg }}>
+                    {currentSourceInfo.label}
+                  </Text>
+                  <Text className={styles.relatedSourceDetail}>{sourceDetail.length > 50 ? sourceDetail.substring(0, 50) + '…' : sourceDetail}</Text>
+                </View>
               )}
             </View>
           </View>
@@ -278,42 +313,55 @@ const ReportPage: React.FC = () => {
 
         {reports.length > 0 ? (
           <View className={styles.historyList}>
-            {reports.map((rep) => (
-              <View key={rep.id} className={styles.historyCard}>
-                <View className={styles.historyTop}>
-                  <Text className={styles.historyContent}>{rep.content}</Text>
-                  <Text className={classnames(styles.statusBadge, styles[rep.status])}>
-                    {statusText[rep.status]}
-                  </Text>
-                </View>
-                {rep.relatedRumorTitle && (
-                  <View className={styles.historyRelatedRow}>
-                    <Text className={styles.historyRelatedLabel}>🔗 关联谣言：</Text>
-                    <Text className={styles.historyRelatedTitle}>{rep.relatedRumorTitle}</Text>
+            {reports.map((rep) => {
+              const repSrcInfo = rep.sourceType ? sourceTypeMap[rep.sourceType] : null;
+              return (
+                <View key={rep.id} className={styles.historyCard}>
+                  <View className={styles.historyTop}>
+                    <Text className={styles.historyContent}>{rep.content}</Text>
+                    <Text className={classnames(styles.statusBadge, styles[rep.status])}>
+                      {statusText[rep.status]}
+                    </Text>
                   </View>
-                )}
-                <View className={styles.historyMeta}>
-                  <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
-                    <ChannelTag type={rep.channel} />
-                    {rep.channelLabel && (
-                      <Text
-                        className={classnames(
-                          styles.historyChannelLabel,
-                          rep.channelLabel === '小区业主群' ? styles.labelOwner : '',
-                          rep.channelLabel === '亲友家庭群' ? styles.labelFamily : ''
-                        )}
-                      >
-                        {rep.channelLabel}
+                  {rep.relatedRumorTitle && (
+                    <View className={styles.historyRelatedRow}>
+                      <Text className={styles.historyRelatedLabel}>🔗 关联谣言：</Text>
+                      <Text className={styles.historyRelatedTitle}>{rep.relatedRumorTitle}</Text>
+                    </View>
+                  )}
+                  {repSrcInfo && (
+                    <View className={styles.historySourceRow}>
+                      <Text className={styles.historySourceTag} style={{ color: repSrcInfo.color, background: repSrcInfo.bg }}>
+                        {repSrcInfo.label}
                       </Text>
-                    )}
-                    {rep.channelDetail && (
-                      <Text className={styles.historyChannel}>· {rep.channelDetail}</Text>
-                    )}
+                      {rep.sourceDetail && (
+                        <Text className={styles.historySourceDetail}>{rep.sourceDetail.length > 55 ? rep.sourceDetail.substring(0, 55) + '…' : rep.sourceDetail}</Text>
+                      )}
+                    </View>
+                  )}
+                  <View className={styles.historyMeta}>
+                    <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
+                      <ChannelTag type={rep.channel} />
+                      {rep.channelLabel && (
+                        <Text
+                          className={classnames(
+                            styles.historyChannelLabel,
+                            rep.channelLabel === '小区业主群' ? styles.labelOwner : '',
+                            rep.channelLabel === '亲友家庭群' ? styles.labelFamily : ''
+                          )}
+                        >
+                          {rep.channelLabel}
+                        </Text>
+                      )}
+                      {rep.channelDetail && (
+                        <Text className={styles.historyChannel}>· {rep.channelDetail}</Text>
+                      )}
+                    </View>
+                    <Text className={styles.historyTime}>{rep.reportedAt}</Text>
                   </View>
-                  <Text className={styles.historyTime}>{rep.reportedAt}</Text>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         ) : (
           <View className={styles.emptyState}>
