@@ -10,15 +10,25 @@ import classnames from 'classnames';
 const STORAGE_KEY_HISTORY = 'local_identify_history';
 const STORAGE_KEY_REPORTS = 'local_report_records';
 
+type HistoryFilter = 'all' | 'text' | 'image' | 'link';
+
 const inputTypeMap: Record<HistoryItem['inputType'], { icon: string; label: string; color: string }> = {
   text: { icon: '文', label: '文字', color: '#2BA471' },
   image: { icon: '图', label: '截图', color: '#1890FF' },
   link: { icon: '链', label: '链接', color: '#722ED1' }
 };
 
+const filterTabs: { key: HistoryFilter; label: string }[] = [
+  { key: 'all', label: '全部' },
+  { key: 'text', label: '文字' },
+  { key: 'image', label: '截图' },
+  { key: 'link', label: '链接' }
+];
+
 const MinePage: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [reportCount, setReportCount] = useState(0);
+  const [filter, setFilter] = useState<HistoryFilter>('all');
 
   const loadData = () => {
     try {
@@ -51,7 +61,18 @@ const MinePage: React.FC = () => {
       { id: 'demo_link', inputType: 'link' as const, matchedRumor: 'r010', riskLevel: 'low' as const, checkedAt: '2026-06-15 18:45' }
     ] as HistoryItem[]);
 
+  const filteredHistory = filter === 'all'
+    ? displayHistory
+    : displayHistory.filter((h) => h.inputType === filter);
+
   const isRealData = history.length > 0;
+
+  const filterCounts: Record<HistoryFilter, number> = {
+    all: displayHistory.length,
+    text: displayHistory.filter((h) => h.inputType === 'text').length,
+    image: displayHistory.filter((h) => h.inputType === 'image').length,
+    link: displayHistory.filter((h) => h.inputType === 'link').length
+  };
 
   const getHistoryDisplayText = (h: HistoryItem): string => {
     if (h.inputText) return h.inputText;
@@ -81,7 +102,13 @@ const MinePage: React.FC = () => {
   };
 
   const handleTapHistory = (h: HistoryItem) => {
-    console.log('[我的] 点击历史记录：', h.id);
+    console.log('[我的] 查看详情：', h.id);
+    Taro.navigateTo({ url: `/pages/history-detail/index?id=${h.id}` });
+  };
+
+  const handleOpenResult = (h: HistoryItem, e: any) => {
+    e?.stopPropagation?.();
+    console.log('[我的] 直接跳结果：', h.id);
     Taro.navigateTo({ url: buildResultUrl(h) });
   };
 
@@ -148,39 +175,68 @@ const MinePage: React.FC = () => {
             <Text className={styles.historyDemoTip}>示例数据</Text>
           )}
         </View>
+
+        <View className={styles.filterTabs}>
+          {filterTabs.map((tab) => (
+            <View
+              key={tab.key}
+              className={classnames(styles.filterTab, filter === tab.key ? styles.filterTabActive : '')}
+              onClick={() => setFilter(tab.key)}
+            >
+              <Text className={styles.filterTabText}>{tab.label}</Text>
+              <Text className={classnames(styles.filterTabCount, filter === tab.key ? styles.filterCountActive : '')}>
+                {filterCounts[tab.key]}
+              </Text>
+            </View>
+          ))}
+        </View>
+
         <View className={styles.historyList}>
-          {displayHistory.map((h) => {
-            const typeInfo = inputTypeMap[h.inputType];
-            return (
-              <View
-                key={h.id}
-                className={styles.historyItem}
-                onClick={() => handleTapHistory(h)}
-              >
-                <View className={styles.historyIcon} style={{ background: `${typeInfo.color}22`, color: typeInfo.color }}>
-                  {typeInfo.icon}
-                </View>
-                <View className={styles.historyInfo}>
-                  {h.inputImage && h.inputType === 'image' && (
-                    <View className={styles.historyThumbRow}>
-                      <Image src={h.inputImage} className={styles.historyThumb} mode="aspectFill" />
+          {filteredHistory.length === 0 ? (
+            <View className={styles.historyEmpty}>
+              <Text className={styles.historyEmptyText}>
+                暂无{filter === 'all' ? '' : inputTypeMap[filter as HistoryItem['inputType']].label}识别记录
+              </Text>
+            </View>
+          ) : (
+            filteredHistory.map((h) => {
+              const typeInfo = inputTypeMap[h.inputType];
+              return (
+                <View
+                  key={h.id}
+                  className={styles.historyItem}
+                  onClick={() => handleTapHistory(h)}
+                >
+                  <View className={styles.historyIcon} style={{ background: `${typeInfo.color}22`, color: typeInfo.color }}>
+                    {typeInfo.icon}
+                  </View>
+                  <View className={styles.historyInfo}>
+                    {h.inputImage && h.inputType === 'image' && (
+                      <View className={styles.historyThumbRow}>
+                        <Image src={h.inputImage} className={styles.historyThumb} mode="aspectFill" />
+                        <Text className={styles.historyText}>{getHistoryDisplayText(h)}</Text>
+                      </View>
+                    )}
+                    {!h.inputImage && (
                       <Text className={styles.historyText}>{getHistoryDisplayText(h)}</Text>
+                    )}
+                    <View className={styles.historyMeta}>
+                      <Text className={styles.historyTypeTag} style={{ color: typeInfo.color, background: `${typeInfo.color}15` }}>
+                        {typeInfo.label}识别
+                      </Text>
+                      <Text className={styles.historyTime}>{h.checkedAt}</Text>
                     </View>
-                  )}
-                  {!h.inputImage && (
-                    <Text className={styles.historyText}>{getHistoryDisplayText(h)}</Text>
-                  )}
-                  <View className={styles.historyMeta}>
-                    <Text className={styles.historyTypeTag} style={{ color: typeInfo.color, background: `${typeInfo.color}15` }}>
-                      {typeInfo.label}识别
-                    </Text>
-                    <Text className={styles.historyTime}>{h.checkedAt}</Text>
+                  </View>
+                  <View className={styles.historyRight}>
+                    <RiskBadge level={h.riskLevel} showLabel={false} />
+                    <View className={styles.historyDetailBtn} onClick={(e) => handleOpenResult(h, e)}>
+                      <Text className={styles.historyDetailText}>结果</Text>
+                    </View>
                   </View>
                 </View>
-                <RiskBadge level={h.riskLevel} showLabel={false} />
-              </View>
-            );
-          })}
+              );
+            })
+          )}
         </View>
       </View>
 

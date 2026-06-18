@@ -427,6 +427,119 @@
   border-radius: $radius-round;
 }
 
+.analysisBox {
+  margin-top: $spacing-lg;
+  padding: $spacing-lg;
+  background: #fffef8;
+  border: 2rpx dashed #ffe58f;
+  border-radius: $radius-md;
+}
+
+.analysisHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 2rpx dashed rgba(250, 173, 20, 0.3);
+}
+
+.analysisIcon {
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.analysisTitle {
+  flex: 1;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: #d48806;
+  line-height: 1.4;
+}
+
+.analysisScoreTag {
+  padding: 6rpx 24rpx;
+  background: #faad14;
+  color: #fff;
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  border-radius: $radius-round;
+  line-height: 1.4;
+}
+
+.analysisItem {
+  margin-bottom: $spacing-md;
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+.analysisLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  margin-bottom: 8rpx;
+  display: block;
+  line-height: 1.5;
+}
+
+.analysisSubtext {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.analysisKwRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.hitKw {
+  padding: 4rpx 16rpx;
+  background: rgba(82, 196, 26, 0.12);
+  color: $color-success;
+  font-size: $font-size-sm;
+  border-radius: $radius-round;
+  font-weight: $font-weight-medium;
+  line-height: 1.6;
+}
+
+.analysisProgressRow {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 2rpx dashed rgba(250, 173, 20, 0.2);
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.analysisProgress {
+  flex: 1;
+  min-width: 280rpx;
+  height: 16rpx;
+  background: #fff7e6;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.analysisProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, #faad14 0%, #ffc53d 100%);
+  border-radius: 16rpx;
+  transition: width 0.4s ease;
+}
+
+.analysisLevel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: #d48806;
+  flex-shrink: 0;
+}
+
 .truthCard {
   padding: $spacing-xl;
   background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);

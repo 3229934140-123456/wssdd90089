@@ -278,10 +278,141 @@
   margin: $spacing-xl $page-padding 0;
 }
 
+.historyHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.viewToggle {
+  display: flex;
+  background: $color-bg-card;
+  border-radius: $radius-round;
+  border: 2rpx solid $color-divider;
+  overflow: hidden;
+}
+
+.viewToggleItem {
+  padding: 10rpx 24rpx;
+  font-size: 22rpx;
+  color: $color-text-secondary;
+  line-height: 1.5;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.viewToggleActive {
+  background: $color-primary;
+  color: #fff;
+  font-weight: $font-weight-medium;
+}
+
+.groupCard {
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+  margin-bottom: $spacing-md;
+  border: 2rpx solid rgba(43, 164, 113, 0.1);
+}
+
+.groupHeader {
+  padding: $spacing-lg $spacing-lg $spacing-md;
+  background: linear-gradient(135deg, #f6ffed 0%, #e6fff3 50%, $color-bg-card 100%);
+  border-bottom: 2rpx solid $color-divider;
+}
+
+.groupTitleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.groupIcon {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-md;
+  background: rgba(43, 164, 113, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.groupTitleBox {
+  flex: 1;
+  min-width: 0;
+}
+
+.groupRumorTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1.5;
+  display: block;
+  margin-bottom: $spacing-xs;
+}
+
+.groupStats {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.groupStatNum {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+}
+
+.groupStatLabel {
+  font-size: 22rpx;
+  color: $color-text-secondary;
+}
+
+.groupDividerDot {
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: $color-divider;
+  margin: 0 6rpx;
+}
+
+.groupChannelSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 2rpx dashed rgba(43, 164, 113, 0.15);
+}
+
+.groupChannelTag {
+  padding: 6rpx 18rpx;
+  font-size: 22rpx;
+  background: rgba(43, 164, 113, 0.08);
+  color: $color-primary;
+  border-radius: $radius-round;
+  font-weight: $font-weight-medium;
+}
+
 .historyList {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+}
+
+.groupCard .historyCard {
+  box-shadow: none;
+  border-radius: 0;
+  border-top: 2rpx solid $color-divider;
+}
+
+.groupCard .historyCard:first-of-type {
+  border-top: none;
 }
 
 .historyCard {

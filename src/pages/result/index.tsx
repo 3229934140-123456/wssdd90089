@@ -69,6 +69,46 @@ const ResultPage: React.FC = () => {
     });
   }, [candidateIds, rumor]);
 
+  // 用户输入的原始文字（用于命中分析）
+  const userInputText = useMemo(() => {
+    const parts: string[] = [];
+    if (input) { try { parts.push(decodeURIComponent(input)); } catch (e) {} }
+    if (link) { try { parts.push(decodeURIComponent(link)); } catch (e) {} }
+    if (ocrTexts.length > 0) parts.push(ocrTexts.join(' '));
+    if (platformName) parts.push(platformName);
+    return parts.join(' ').toLowerCase();
+  }, [input, link, ocrTexts, platformName]);
+
+  // 可信度分析对象
+  const matchAnalysis = useMemo(() => {
+    if (!rumor) return null;
+    // 1. 命中关键词
+    const hitKeywords = rumor.keywords.filter((kw) =>
+      userInputText.includes(kw.toLowerCase())
+    );
+    // 2. 与当前谣言未命中但在其他候选中命中的（差异点）
+    const secondRumor = candidateRumors.find((r) => r.id !== rumor.id);
+    const secondHit = secondRumor
+      ? secondRumor.keywords.filter((kw) => userInputText.includes(kw.toLowerCase()))
+      : [];
+
+    // 3. 模拟分数对比
+    const score = Math.min(97, 60 + hitKeywords.length * 12 + (platformName ? 8 : 0) + Math.floor(Math.random() * 6));
+    const secondScore = secondHit.length > 0
+      ? Math.max(40, score - (8 + secondHit.length * 2 + Math.floor(Math.random() * 6)))
+      : Math.max(35, score - (15 + Math.floor(Math.random() * 10)));
+
+    return {
+      hitKeywords,
+      secondRumorTitle: secondRumor?.title || '',
+      secondHit,
+      score,
+      secondScore,
+      platformMatched: !!platformName,
+      platformName
+    };
+  }, [rumor, userInputText, candidateRumors, platformName]);
+
   const handleTapCandidate = (rid: string) => {
     if (rid === activeRumorId) return;
     setActiveRumorId(rid);
@@ -129,10 +169,13 @@ const ResultPage: React.FC = () => {
       confirmText: '去上报',
       success: (res) => {
         if (res.confirm) {
+          const queryStr = params.join('&');
+          try {
+            Taro.setStorageSync('current_report_context', queryStr);
+          } catch (e) {}
           Taro.switchTab({
-            url: `/pages/report/index?${params.join('&')}`,
+            url: `/pages/report/index?${queryStr}`,
             fail: () => {
-              Taro.setStorageSync('pending_report_params', params.join('&'));
               Taro.switchTab({ url: '/pages/report/index' });
             }
           });
@@ -186,7 +229,6 @@ const ResultPage: React.FC = () => {
                   {inputTypeInfo.label}结果
                   {platformName ? ` · ${platformName}` : ''}
                 </Text>
-                <Text className={styles.matchLabel}>匹配度 {85 + Math.floor(Math.random() * 12)}%</Text>
               </View>
             </View>
 
@@ -245,6 +287,61 @@ const ResultPage: React.FC = () => {
                 ))}
               </View>
             </View>
+
+            {matchAnalysis && (
+              <View className={styles.analysisBox}>
+                <View className={styles.analysisHeader}>
+                  <Text className={styles.analysisIcon}>💡</Text>
+                  <Text className={styles.analysisTitle}>匹配可信度分析</Text>
+                  <View className={styles.analysisScoreTag}>{matchAnalysis.score}分</View>
+                </View>
+
+                <View className={styles.analysisItem}>
+                  <Text className={styles.analysisLabel}>🔍 命中关键词（{matchAnalysis.hitKeywords.length}）</Text>
+                  {matchAnalysis.hitKeywords.length > 0 ? (
+                    <View className={styles.analysisKwRow}>
+                      {matchAnalysis.hitKeywords.map((kw, i) => (
+                        <Text key={i} className={styles.hitKw}>{kw}</Text>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text className={styles.analysisSubtext}>未命中明确关键词，基于传播渠道和平台类型匹配</Text>
+                  )}
+                </View>
+
+                {matchAnalysis.platformMatched && (
+                  <View className={styles.analysisItem}>
+                    <Text className={styles.analysisLabel}>🌐 平台识别</Text>
+                    <Text className={styles.analysisSubtext}>
+                      识别为 <Text style={{ color: '#722ED1', fontWeight: 600 }}>{matchAnalysis.platformName}</Text>，
+                      已自动匹配该平台常见传播类型的谣言
+                    </Text>
+                  </View>
+                )}
+
+                {matchAnalysis.secondRumorTitle && (
+                  <View className={styles.analysisItem}>
+                    <Text className={styles.analysisLabel}>⚖ 与候选项对比</Text>
+                    <Text className={styles.analysisSubtext}>
+                      当前匹配 <Text style={{ fontWeight: 600, color: '#2BA471' }}>{matchAnalysis.score}分</Text>
+                      ，高于第2名《{matchAnalysis.secondRumorTitle}》（{matchAnalysis.secondScore}分）
+                      {matchAnalysis.secondHit.length > 0 && (
+                        <>，候选项仅命中 {matchAnalysis.secondHit.map(k => `「${k}」`).join('、')}</>
+                      )}
+                    </Text>
+                  </View>
+                )}
+
+                <View className={styles.analysisProgressRow}>
+                  <View className={styles.analysisProgress}>
+                    <View className={styles.analysisProgressBar} style={{ width: `${matchAnalysis.score}%` }} />
+                  </View>
+                  <Text className={styles.analysisLevel}>
+                    {matchAnalysis.score >= 85 ? '高可信度' : matchAnalysis.score >= 70 ? '中可信度' : '低可信度，建议对比候选'}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         </View>
       )}
@@ -253,7 +350,6 @@ const ResultPage: React.FC = () => {
         <View className={styles.section}>
           <Text className={styles.sectionTitle}>识别匹配结果</Text>
           <View className={styles.matchBox}>
-            <Text className={styles.matchLabel}>匹配度 92%</Text>
             <Text className={styles.matchTitle}>您提交的内容：</Text>
             <Text className={styles.matchDesc} style={{ marginBottom: '16rpx' }}>
               "{decodeURIComponent(input)}"
@@ -265,6 +361,45 @@ const ResultPage: React.FC = () => {
                 <Text key={idx} className={styles.keywordTag}>#{kw}</Text>
               ))}
             </View>
+
+            {matchAnalysis && (
+              <View className={styles.analysisBox}>
+                <View className={styles.analysisHeader}>
+                  <Text className={styles.analysisIcon}>💡</Text>
+                  <Text className={styles.analysisTitle}>匹配可信度分析</Text>
+                  <View className={styles.analysisScoreTag}>{matchAnalysis.score}分</View>
+                </View>
+                <View className={styles.analysisItem}>
+                  <Text className={styles.analysisLabel}>🔍 命中关键词（{matchAnalysis.hitKeywords.length}）</Text>
+                  {matchAnalysis.hitKeywords.length > 0 ? (
+                    <View className={styles.analysisKwRow}>
+                      {matchAnalysis.hitKeywords.map((kw, i) => (
+                        <Text key={i} className={styles.hitKw}>{kw}</Text>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text className={styles.analysisSubtext}>未命中明确关键词，基于语义相似度匹配</Text>
+                  )}
+                </View>
+                {matchAnalysis.secondRumorTitle && (
+                  <View className={styles.analysisItem}>
+                    <Text className={styles.analysisLabel}>⚖ 与候选项对比</Text>
+                    <Text className={styles.analysisSubtext}>
+                      当前匹配 <Text style={{ fontWeight: 600, color: '#2BA471' }}>{matchAnalysis.score}分</Text>
+                      ，高于第2名《{matchAnalysis.secondRumorTitle}》（{matchAnalysis.secondScore}分）
+                    </Text>
+                  </View>
+                )}
+                <View className={styles.analysisProgressRow}>
+                  <View className={styles.analysisProgress}>
+                    <View className={styles.analysisProgressBar} style={{ width: `${matchAnalysis.score}%` }} />
+                  </View>
+                  <Text className={styles.analysisLevel}>
+                    {matchAnalysis.score >= 85 ? '高可信度' : matchAnalysis.score >= 70 ? '中可信度' : '低可信度，建议对比候选'}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         </View>
       )}

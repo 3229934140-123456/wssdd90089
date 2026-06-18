@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, Textarea, Input, Button } from '@tarojs/components';
 import Taro, { useDidShow, useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
@@ -8,6 +8,7 @@ import { ReportRecord, ChannelType } from '@/types/rumor';
 import classnames from 'classnames';
 
 const STORAGE_KEY_REPORTS = 'local_report_records';
+const STORAGE_KEY_CONTEXT = 'current_report_context';
 
 const defaultMockReports: ReportRecord[] = [
   {
@@ -98,38 +99,58 @@ const ReportPage: React.FC = () => {
   const [relatedRumor, setRelatedRumor] = useState<{ id: string; title: string; content?: string } | null>(null);
   const [sourceType, setSourceType] = useState<string>('');
   const [sourceDetail, setSourceDetail] = useState<string>('');
+  const [contextApplied, setContextApplied] = useState(false);
+  const [viewMode, setViewMode] = useState<'time' | 'rumor'>('rumor');
 
-  useEffect(() => {
-    const params = { ...router.params } as Record<string, string>;
+  const applyReportContext = () => {
+    const params: Record<string, string> = { ...router.params } as Record<string, string>;
     try {
-      const pending = Taro.getStorageSync('pending_report_params');
-      if (pending && typeof pending === 'string') {
-        const pendParsed = parseQuery(pending);
-        Object.assign(params, pendParsed);
-        Taro.removeStorageSync('pending_report_params');
+      const ctx = Taro.getStorageSync(STORAGE_KEY_CONTEXT);
+      if (ctx && typeof ctx === 'string') {
+        const ctxParsed = parseQuery(ctx);
+        Object.assign(params, ctxParsed);
       }
     } catch (e) {}
 
-    if (params.sourceType) setSourceType(params.sourceType);
-    if (params.sourceDetail) setSourceDetail(params.sourceDetail);
+    if (Object.keys(params).length === 0) return false;
 
-    if (params.rumorId || params.rumorTitle) {
+    let hasChanges = false;
+    if (params.sourceType && params.sourceType !== sourceType) {
+      setSourceType(params.sourceType);
+      hasChanges = true;
+    }
+    if (params.sourceDetail && params.sourceDetail !== sourceDetail) {
+      setSourceDetail(params.sourceDetail);
+      hasChanges = true;
+    }
+
+    if ((params.rumorId || params.rumorTitle) && !relatedRumor) {
       setRelatedRumor({
         id: params.rumorId || '',
         title: params.rumorTitle || '',
         content: params.rumorContent || ''
       });
-      if (params.rumorContent) {
+      if (params.rumorContent && !content) {
         setContent(params.rumorContent);
-      } else if (params.rumorTitle) {
+        hasChanges = true;
+      } else if (params.rumorTitle && !content) {
         setContent(`谣言内容与"${params.rumorTitle}"相关，在群里/网上被大量转发。`);
+        hasChanges = true;
       }
+      hasChanges = true;
     }
+    return hasChanges;
+  };
+
+  useEffect(() => {
+    applyReportContext();
+    setContextApplied(true);
   }, []);
 
   useDidShow(() => {
     const stored = loadReportsFromStorage();
     setReports(stored);
+    applyReportContext();
   });
 
   const selectedOption = reportChannelOptions.find(o => o.key === selectedChannelKey);
@@ -148,6 +169,7 @@ const ReportPage: React.FC = () => {
     setContent('');
     setSourceType('');
     setSourceDetail('');
+    try { Taro.removeStorageSync(STORAGE_KEY_CONTEXT); } catch (e) {}
   };
 
   const currentSourceInfo = sourceTypeMap[sourceType] || null;
@@ -180,8 +202,39 @@ const ReportPage: React.FC = () => {
     setRelatedRumor(null);
     setSourceType('');
     setSourceDetail('');
+    try { Taro.removeStorageSync(STORAGE_KEY_CONTEXT); } catch (e) {}
     Taro.showToast({ title: '感谢您的反馈！', icon: 'success' });
   };
+
+  const groupedReports = useMemo(() => {
+    const byRumor: Record<string, { title: string; items: ReportRecord[] }> = {};
+    const ungrouped: ReportRecord[] = [];
+    reports.forEach((rep) => {
+      if (rep.relatedRumorId && rep.relatedRumorTitle) {
+        const key = rep.relatedRumorId;
+        if (!byRumor[key]) {
+          byRumor[key] = { title: rep.relatedRumorTitle, items: [] };
+        }
+        byRumor[key].items.push(rep);
+      } else {
+        ungrouped.push(rep);
+      }
+    });
+    const groups = Object.entries(byRumor).map(([rid, info]) => {
+      const channelSet = new Set<string>();
+      info.items.forEach((i) => { if (i.channelLabel) channelSet.add(i.channelLabel); });
+      return {
+        rumorId: rid,
+        rumorTitle: info.title,
+        items: info.items,
+        reportCount: info.items.length,
+        channelCount: channelSet.size,
+        channelLabels: Array.from(channelSet)
+      };
+    });
+    groups.sort((a, b) => b.reportCount - a.reportCount);
+    return { groups, ungrouped };
+  }, [reports]);
 
   return (
     <View className={styles.pageContainer}>
@@ -309,60 +362,209 @@ const ReportPage: React.FC = () => {
       </View>
 
       <View className={styles.historySection}>
-        <Text className={styles.sectionTitle}>本小区上报动态</Text>
+        <View className={styles.historyHeaderRow}>
+          <Text className={styles.sectionTitle}>本小区上报动态</Text>
+          <View className={styles.viewToggle}>
+            <View
+              className={classnames(styles.viewToggleItem, viewMode === 'time' ? styles.viewToggleActive : '')}
+              onClick={() => setViewMode('time')}
+            >
+              按时间
+            </View>
+            <View
+              className={classnames(styles.viewToggleItem, viewMode === 'rumor' ? styles.viewToggleActive : '')}
+              onClick={() => setViewMode('rumor')}
+            >
+              按谣言
+            </View>
+          </View>
+        </View>
 
         {reports.length > 0 ? (
-          <View className={styles.historyList}>
-            {reports.map((rep) => {
-              const repSrcInfo = rep.sourceType ? sourceTypeMap[rep.sourceType] : null;
-              return (
-                <View key={rep.id} className={styles.historyCard}>
-                  <View className={styles.historyTop}>
-                    <Text className={styles.historyContent}>{rep.content}</Text>
-                    <Text className={classnames(styles.statusBadge, styles[rep.status])}>
-                      {statusText[rep.status]}
-                    </Text>
-                  </View>
-                  {rep.relatedRumorTitle && (
-                    <View className={styles.historyRelatedRow}>
-                      <Text className={styles.historyRelatedLabel}>🔗 关联谣言：</Text>
-                      <Text className={styles.historyRelatedTitle}>{rep.relatedRumorTitle}</Text>
-                    </View>
-                  )}
-                  {repSrcInfo && (
-                    <View className={styles.historySourceRow}>
-                      <Text className={styles.historySourceTag} style={{ color: repSrcInfo.color, background: repSrcInfo.bg }}>
-                        {repSrcInfo.label}
+          viewMode === 'time' ? (
+            <View className={styles.historyList}>
+              {reports.map((rep) => {
+                const repSrcInfo = rep.sourceType ? sourceTypeMap[rep.sourceType] : null;
+                return (
+                  <View key={rep.id} className={styles.historyCard}>
+                    <View className={styles.historyTop}>
+                      <Text className={styles.historyContent}>{rep.content}</Text>
+                      <Text className={classnames(styles.statusBadge, styles[rep.status])}>
+                        {statusText[rep.status]}
                       </Text>
-                      {rep.sourceDetail && (
-                        <Text className={styles.historySourceDetail}>{rep.sourceDetail.length > 55 ? rep.sourceDetail.substring(0, 55) + '…' : rep.sourceDetail}</Text>
-                      )}
                     </View>
-                  )}
-                  <View className={styles.historyMeta}>
-                    <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
-                      <ChannelTag type={rep.channel} />
-                      {rep.channelLabel && (
-                        <Text
-                          className={classnames(
-                            styles.historyChannelLabel,
-                            rep.channelLabel === '小区业主群' ? styles.labelOwner : '',
-                            rep.channelLabel === '亲友家庭群' ? styles.labelFamily : ''
-                          )}
-                        >
-                          {rep.channelLabel}
+                    {rep.relatedRumorTitle && (
+                      <View className={styles.historyRelatedRow}>
+                        <Text className={styles.historyRelatedLabel}>🔗 关联谣言：</Text>
+                        <Text className={styles.historyRelatedTitle}>{rep.relatedRumorTitle}</Text>
+                      </View>
+                    )}
+                    {repSrcInfo && (
+                      <View className={styles.historySourceRow}>
+                        <Text className={styles.historySourceTag} style={{ color: repSrcInfo.color, background: repSrcInfo.bg }}>
+                          {repSrcInfo.label}
                         </Text>
-                      )}
-                      {rep.channelDetail && (
-                        <Text className={styles.historyChannel}>· {rep.channelDetail}</Text>
-                      )}
+                        {rep.sourceDetail && (
+                          <Text className={styles.historySourceDetail}>{rep.sourceDetail.length > 55 ? rep.sourceDetail.substring(0, 55) + '…' : rep.sourceDetail}</Text>
+                        )}
+                      </View>
+                    )}
+                    <View className={styles.historyMeta}>
+                      <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
+                        <ChannelTag type={rep.channel} />
+                        {rep.channelLabel && (
+                          <Text
+                            className={classnames(
+                              styles.historyChannelLabel,
+                              rep.channelLabel === '小区业主群' ? styles.labelOwner : '',
+                              rep.channelLabel === '亲友家庭群' ? styles.labelFamily : ''
+                            )}
+                          >
+                            {rep.channelLabel}
+                          </Text>
+                        )}
+                        {rep.channelDetail && (
+                          <Text className={styles.historyChannel}>· {rep.channelDetail}</Text>
+                        )}
+                      </View>
+                      <Text className={styles.historyTime}>{rep.reportedAt}</Text>
                     </View>
-                    <Text className={styles.historyTime}>{rep.reportedAt}</Text>
                   </View>
+                );
+              })}
+            </View>
+          ) : (
+            <View className={styles.historyList}>
+              {groupedReports.groups.map((g) => (
+                <View key={g.rumorId} className={styles.groupCard}>
+                  <View className={styles.groupHeader}>
+                    <View className={styles.groupTitleRow}>
+                      <View className={styles.groupIcon}>🔗</View>
+                      <View className={styles.groupTitleBox}>
+                        <Text className={styles.groupRumorTitle}>{g.rumorTitle}</Text>
+                        <View className={styles.groupStats}>
+                          <Text className={styles.groupStatNum}>{g.reportCount}</Text>
+                          <Text className={styles.groupStatLabel}>条线索</Text>
+                          <View className={styles.groupDividerDot} />
+                          <Text className={styles.groupStatNum}>{g.channelCount}</Text>
+                          <Text className={styles.groupStatLabel}>个渠道</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View className={styles.groupChannelSummary}>
+                      {g.channelLabels.slice(0, 4).map((ch, idx) => (
+                        <Text key={idx} className={styles.groupChannelTag}>
+                          {ch}
+                        </Text>
+                      ))}
+                    </View>
+                  </View>
+                  {g.items.map((rep) => {
+                    const repSrcInfo = rep.sourceType ? sourceTypeMap[rep.sourceType] : null;
+                    return (
+                      <View key={rep.id} className={styles.historyCard}>
+                        <View className={styles.historyTop}>
+                          <Text className={styles.historyContent}>{rep.content}</Text>
+                          <Text className={classnames(styles.statusBadge, styles[rep.status])}>
+                            {statusText[rep.status]}
+                          </Text>
+                        </View>
+                        {repSrcInfo && (
+                          <View className={styles.historySourceRow}>
+                            <Text className={styles.historySourceTag} style={{ color: repSrcInfo.color, background: repSrcInfo.bg }}>
+                              {repSrcInfo.label}
+                            </Text>
+                            {rep.sourceDetail && (
+                              <Text className={styles.historySourceDetail}>{rep.sourceDetail.length > 55 ? rep.sourceDetail.substring(0, 55) + '…' : rep.sourceDetail}</Text>
+                            )}
+                          </View>
+                        )}
+                        <View className={styles.historyMeta}>
+                          <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
+                            <ChannelTag type={rep.channel} />
+                            {rep.channelLabel && (
+                              <Text
+                                className={classnames(
+                                  styles.historyChannelLabel,
+                                  rep.channelLabel === '小区业主群' ? styles.labelOwner : '',
+                                  rep.channelLabel === '亲友家庭群' ? styles.labelFamily : ''
+                                )}
+                              >
+                                {rep.channelLabel}
+                              </Text>
+                            )}
+                            {rep.channelDetail && (
+                              <Text className={styles.historyChannel}>· {rep.channelDetail}</Text>
+                            )}
+                          </View>
+                          <Text className={styles.historyTime}>{rep.reportedAt}</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
                 </View>
-              );
-            })}
-          </View>
+              ))}
+              {groupedReports.ungrouped.length > 0 && (
+                <View className={styles.groupCard}>
+                  <View className={styles.groupHeader}>
+                    <View className={styles.groupTitleRow}>
+                      <View className={styles.groupIcon}>📝</View>
+                      <View className={styles.groupTitleBox}>
+                        <Text className={styles.groupRumorTitle}>其他独立线索</Text>
+                        <View className={styles.groupStats}>
+                          <Text className={styles.groupStatNum}>{groupedReports.ungrouped.length}</Text>
+                          <Text className={styles.groupStatLabel}>条未归类线索</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  {groupedReports.ungrouped.map((rep) => {
+                    const repSrcInfo = rep.sourceType ? sourceTypeMap[rep.sourceType] : null;
+                    return (
+                      <View key={rep.id} className={styles.historyCard}>
+                        <View className={styles.historyTop}>
+                          <Text className={styles.historyContent}>{rep.content}</Text>
+                          <Text className={classnames(styles.statusBadge, styles[rep.status])}>
+                            {statusText[rep.status]}
+                          </Text>
+                        </View>
+                        {repSrcInfo && (
+                          <View className={styles.historySourceRow}>
+                            <Text className={styles.historySourceTag} style={{ color: repSrcInfo.color, background: repSrcInfo.bg }}>
+                              {repSrcInfo.label}
+                            </Text>
+                            {rep.sourceDetail && (
+                              <Text className={styles.historySourceDetail}>{rep.sourceDetail.length > 55 ? rep.sourceDetail.substring(0, 55) + '…' : rep.sourceDetail}</Text>
+                            )}
+                          </View>
+                        )}
+                        <View className={styles.historyMeta}>
+                          <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
+                            <ChannelTag type={rep.channel} />
+                            {rep.channelLabel && (
+                              <Text
+                                className={classnames(
+                                  styles.historyChannelLabel,
+                                  rep.channelLabel === '小区业主群' ? styles.labelOwner : '',
+                                  rep.channelLabel === '亲友家庭群' ? styles.labelFamily : ''
+                                )}
+                              >
+                                {rep.channelLabel}
+                              </Text>
+                            )}
+                            {rep.channelDetail && (
+                              <Text className={styles.historyChannel}>· {rep.channelDetail}</Text>
+                            )}
+                          </View>
+                          <Text className={styles.historyTime}>{rep.reportedAt}</Text>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          )
         ) : (
           <View className={styles.emptyState}>
             <View className={styles.emptyIcon}>📋</View>

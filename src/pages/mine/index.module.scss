@@ -265,6 +265,64 @@
   margin-bottom: $spacing-md;
 }
 
+.filterTabs {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: $spacing-md;
+  overflow-x: auto;
+  padding-bottom: 4rpx;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filterTab {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 12rpx 28rpx;
+  background: $color-bg-card;
+  border-radius: $radius-round;
+  border: 2rpx solid $color-divider;
+  flex-shrink: 0;
+  transition: all 0.2s;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.filterTabActive {
+  background: linear-gradient(135deg, #2BA471 0%, #4caf7d 100%);
+  border-color: transparent;
+}
+
+.filterTabText {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.filterTabActive .filterTabText,
+.filterTabActive .filterTabCount {
+  color: #fff;
+}
+
+.filterTabCount {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  background: $color-bg-page;
+  padding: 0 12rpx;
+  border-radius: 16rpx;
+  line-height: 1.6;
+}
+
+.filterCountActive {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .historyAction {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
@@ -290,6 +348,20 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-sm;
+}
+
+.historyEmpty {
+  padding: $spacing-xl;
+  text-align: center;
+  background: $color-bg-card;
+  border-radius: $radius-md;
+  border: 2rpx dashed $color-divider;
+}
+
+.historyEmptyText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  line-height: 1.6;
 }
 
 .historyThumbRow {
@@ -351,7 +423,31 @@
 
 .historyInfo {
   flex: 1;
-  margin-right: $spacing-md;
+  margin-right: $spacing-sm;
+  min-width: 0;
+}
+
+.historyRight {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.historyDetailBtn {
+  padding: 8rpx 16rpx;
+  background: $color-bg-primary-soft;
+  border-radius: $radius-round;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.historyDetailText {
+  font-size: 22rpx;
+  font-weight: $font-weight-medium;
+  color: $color-primary;
 }
 
 .historyText {

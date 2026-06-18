@@ -7,7 +7,8 @@ export default defineAppConfig({
     'pages/result/index',
     'pages/knowledge-detail/index',
     'pages/share/index',
-    'pages/image-preview/index'
+    'pages/image-preview/index',
+    'pages/history-detail/index'
   ],
   window: {
     backgroundTextStyle: 'light',
