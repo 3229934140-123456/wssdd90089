@@ -363,6 +363,86 @@
   }
 }
 
+.relatedRumorBox {
+  margin-bottom: $spacing-lg;
+  padding: $spacing-lg;
+  background: linear-gradient(135deg, #f9f0ff 0%, #e6f7ff 100%);
+  border-radius: $radius-lg;
+  border: 2rpx dashed #9254de;
+}
+
+.relatedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.relatedTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: #722ED1;
+}
+
+.relatedClear {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  padding: 4rpx 16rpx;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: $radius-round;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.relatedContent {
+  padding: $spacing-md;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: $radius-md;
+}
+
+.relatedRumorTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  line-height: 1.5;
+  margin-bottom: $spacing-xs;
+  display: block;
+}
+
+.relatedRumorContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.5;
+}
+
+.historyRelatedRow {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: $spacing-sm;
+  padding: $spacing-xs $spacing-md;
+  background: linear-gradient(135deg, #fffbe6 0%, #f9f0ff 100%);
+  border-radius: $radius-sm;
+  border-left: 6rpx solid #9254de;
+}
+
+.historyRelatedLabel {
+  font-size: $font-size-xs;
+  color: #722ED1;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+  margin-right: 8rpx;
+}
+
+.historyRelatedTitle {
+  font-size: $font-size-xs;
+  color: #531dab;
+  font-weight: $font-weight-semibold;
+  line-height: 1.5;
+  flex: 1;
+}
+
 .historyTime {
   font-size: $font-size-xs;
   color: $color-text-tertiary;

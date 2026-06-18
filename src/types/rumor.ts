@@ -60,13 +60,19 @@ export interface ReportRecord {
   channelDetail: string;
   reportedAt: string;
   status: 'pending' | 'reviewed' | 'resolved';
+  relatedRumorId?: string;
+  relatedRumorTitle?: string;
 }
 
 export interface HistoryItem {
   id: string;
   inputText?: string;
+  inputImage?: string;
+  inputLink?: string;
+  ocrTexts?: string[];
   inputType: 'text' | 'image' | 'link';
   matchedRumor?: string;
+  candidateRumors?: string[];
   riskLevel: RiskLevel;
   checkedAt: string;
 }

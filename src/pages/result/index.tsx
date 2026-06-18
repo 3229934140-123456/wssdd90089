@@ -22,42 +22,87 @@ const typeLabelMap: Record<string, { label: string; icon: string; color: string 
 
 const ResultPage: React.FC = () => {
   const router = useRouter();
-  const { id, input, type, image, link } = router.params;
+  const { id, input, type, image, link, ocr, candidates, platform } = router.params;
+
+  const ocrTexts = useMemo(() => {
+    if (!ocr) return [];
+    try { return decodeURIComponent(ocr).split('||').filter(Boolean); }
+    catch (e) { return []; }
+  }, [ocr]);
+
+  const candidateIds = useMemo(() => {
+    if (!candidates) return [];
+    try { return decodeURIComponent(candidates).split(',').filter(Boolean); }
+    catch (e) { return []; }
+  }, [candidates]);
+
+  const platformName = useMemo(() => {
+    if (!platform) return '';
+    try { return decodeURIComponent(platform); } catch (e) { return ''; }
+  }, [platform]);
+
+  const [activeRumorId, setActiveRumorId] = useState<string>(id || mockRumors[0].id);
+  const [showShare, setShowShare] = useState(false);
+
   const rumor: Rumor | undefined = useMemo(() => {
-    return mockRumors.find(r => r.id === id) || mockRumors[0];
-  }, [id]);
+    return mockRumors.find(r => r.id === activeRumorId) || mockRumors.find(r => r.id === id) || mockRumors[0];
+  }, [activeRumorId, id]);
 
   const inputTypeInfo = type && typeLabelMap[type] ? typeLabelMap[type] : null;
 
-  const [showShare, setShowShare] = useState(false);
-
-  const relatedRumors = useMemo(() => {
-    return rumor
-      ? mockRumors.filter(r => rumor.relatedRumors.includes(r.id)).slice(0, 3)
+  const candidateRumors = useMemo(() => {
+    let list = candidateIds.length > 0
+      ? candidateIds.map(cid => mockRumors.find(r => r.id === cid)).filter(Boolean) as Rumor[]
       : [];
-  }, [rumor]);
+    if (list.length === 0 && rumor) {
+      const related = rumor.relatedRumors
+        .map(rid => mockRumors.find(r => r.id === rid))
+        .filter(Boolean) as Rumor[];
+      const extras = mockRumors.filter(r => r.id !== rumor.id && !related.includes(r)).slice(0, 2);
+      list = [rumor, ...related, ...extras].slice(0, 5);
+    }
+    const idSet = new Set<string>();
+    return list.filter(r => {
+      if (idSet.has(r.id)) return false;
+      idSet.add(r.id);
+      return true;
+    });
+  }, [candidateIds, rumor]);
 
-  const handleTapRelated = (rid: string) => {
-    console.log('[结果页] 点击相关谣言：', rid);
-    Taro.redirectTo({ url: `/pages/result/index?id=${rid}` });
+  const handleTapCandidate = (rid: string) => {
+    if (rid === activeRumorId) return;
+    setActiveRumorId(rid);
+    Taro.pageScrollTo({ scrollTop: 0, duration: 300 });
+    Taro.showToast({ title: '已切换', icon: 'none' });
   };
 
   const handleShare = () => {
-    console.log('[结果页] 生成分享卡片：', rumor.id);
+    if (!rumor) return;
     Taro.navigateTo({
       url: `/pages/share/index?id=${rumor.id}`
     });
   };
 
   const handleReportChannel = () => {
-    console.log('[结果页] 补充渠道信息');
+    if (!rumor) return;
+    const params: string[] = [];
+    params.push(`rumorId=${rumor.id}`);
+    params.push(`rumorTitle=${encodeURIComponent(rumor.title)}`);
+    if (input) params.push(`rumorContent=${encodeURIComponent(decodeURIComponent(input))}`);
+    if (type) params.push(`sourceType=${type}`);
     Taro.showModal({
       title: '补充传播渠道',
-      content: '您是在哪里看到这条消息的？匿名上报帮助社区管理员及时介入。',
+      content: `识别结果：${rumor.title}\n\n将自动带上这条谣言的标题，帮助管理员快速定位。您是在哪里看到这条消息的？`,
       confirmText: '去上报',
       success: (res) => {
         if (res.confirm) {
-          Taro.switchTab({ url: '/pages/report/index' });
+          Taro.switchTab({
+            url: `/pages/report/index?${params.join('&')}`,
+            fail: () => {
+              Taro.setStorageSync('pending_report_params', params.join('&'));
+              Taro.switchTab({ url: '/pages/report/index' });
+            }
+          });
         }
       }
     });
@@ -81,14 +126,16 @@ const ResultPage: React.FC = () => {
         <Text className={styles.riskIcon}>
           {rumor.riskLevel === 'high' ? '!' : rumor.riskLevel === 'medium' ? '?' : '✓'}
         </Text>
-        <Text className={styles.riskLabel}>{riskLabelMap[rumor.riskLevel]}</Text>
-        {inputTypeInfo && (
-          <View className={styles.inputTypeBadge} style={{ background: inputTypeInfo.color }}>
-            <Text className={styles.inputTypeBadgeText}>
-              {inputTypeInfo.icon} {inputTypeInfo.label}
-            </Text>
-          </View>
-        )}
+        <View className={styles.riskBadgeRow}>
+          <Text className={styles.riskLabel}>{riskLabelMap[rumor.riskLevel]}</Text>
+          {inputTypeInfo && (
+            <View className={styles.inputTypeBadge} style={{ background: inputTypeInfo.color }}>
+              <Text className={styles.inputTypeBadgeText}>
+                {inputTypeInfo.icon} {inputTypeInfo.label}
+              </Text>
+            </View>
+          )}
+        </View>
         <Text className={styles.riskTitle}>{rumor.title}</Text>
         <Text className={styles.riskDesc}>{rumor.summary}</Text>
       </View>
@@ -102,7 +149,10 @@ const ResultPage: React.FC = () => {
                 {inputTypeInfo.icon}
               </View>
               <View className={styles.inputTypeInfo}>
-                <Text className={styles.inputTypeLabel}>{inputTypeInfo.label}结果</Text>
+                <Text className={styles.inputTypeLabel}>
+                  {inputTypeInfo.label}结果
+                  {platformName ? ` · ${platformName}` : ''}
+                </Text>
                 <Text className={styles.matchLabel}>匹配度 {85 + Math.floor(Math.random() * 12)}%</Text>
               </View>
             </View>
@@ -118,12 +168,29 @@ const ResultPage: React.FC = () => {
               </View>
             )}
 
+            {type === 'image' && ocrTexts.length > 0 && (
+              <View className={styles.submittedWrap}>
+                <View className={styles.ocrHeader}>
+                  <Text className={styles.matchTitle}>识别提取的文字：</Text>
+                  <Text className={styles.ocrTag}>OCR</Text>
+                </View>
+                <View className={styles.ocrList}>
+                  {ocrTexts.map((t, i) => (
+                    <View key={i} className={styles.ocrItem}>• {t}</View>
+                  ))}
+                </View>
+              </View>
+            )}
+
             {type === 'link' && link && (
               <View className={styles.submittedWrap}>
                 <Text className={styles.matchTitle}>您识别的链接：</Text>
                 <View className={styles.linkBox}>
                   <Text className={styles.linkText}>{decodeURIComponent(link)}</Text>
                 </View>
+                {platformName && (
+                  <Text className={styles.platformHint}>🔍 已识别来源平台：{platformName}</Text>
+                )}
               </View>
             )}
 
@@ -165,6 +232,39 @@ const ResultPage: React.FC = () => {
                 <Text key={idx} className={styles.keywordTag}>#{kw}</Text>
               ))}
             </View>
+          </View>
+        </View>
+      )}
+
+      {candidateRumors.length > 1 && (
+        <View className={styles.section}>
+          <Text className={styles.sectionTitle}>相似谣言候选（{candidateRumors.length}）</Text>
+          <Text className={styles.sectionSubtitle}>点击切换查看传播路径和官方回应 →</Text>
+          <View className={styles.candidateList}>
+            {candidateRumors.map((cand, idx) => (
+              <View
+                key={cand.id}
+                className={classnames(
+                  styles.candidateItem,
+                  activeRumorId === cand.id ? styles.candidateActive : ''
+                )}
+                onClick={() => handleTapCandidate(cand.id)}
+              >
+                <View className={styles.candidateRank} data-active={activeRumorId === cand.id}>
+                  {idx + 1}
+                </View>
+                <View className={styles.candidateContent}>
+                  <Text className={styles.candidateTitle}>{cand.title}</Text>
+                  <Text className={styles.candidateSummary}>{cand.summary}</Text>
+                  <View className={styles.candidateTags}>
+                    <Text className={styles.candidateCategory}>#{cand.category}</Text>
+                    {cand.id === id && inputTypeInfo && <Text className={styles.currentTag}>当前匹配</Text>}
+                    {activeRumorId === cand.id && cand.id !== id && <Text className={styles.currentTag}>正在查看</Text>}
+                  </View>
+                </View>
+                <RiskBadge level={cand.riskLevel} showLabel={false} />
+              </View>
+            ))}
           </View>
         </View>
       )}
@@ -236,27 +336,6 @@ const ResultPage: React.FC = () => {
           </View>
         </View>
       </View>
-
-      {relatedRumors.length > 0 && (
-        <View className={styles.section}>
-          <Text className={styles.sectionTitle}>大家还查了这些</Text>
-          <View className={styles.relatedList}>
-            {relatedRumors.map((rr) => (
-              <View
-                key={rr.id}
-                className={styles.relatedItem}
-                onClick={() => handleTapRelated(rr.id)}
-              >
-                <View className={styles.relatedIcon}>→</View>
-                <View className={styles.relatedContent}>
-                  <Text className={styles.relatedTitle}>{rr.title}</Text>
-                </View>
-                <RiskBadge level={rr.riskLevel} showLabel={false} />
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
 
       <View className={styles.bottomBar}>
         <Button className={classnames(styles.btn, styles.btnSecondary)} onClick={handleBackHome}>

@@ -1,29 +1,105 @@
-import React from 'react';
-import { View, Text, Button } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import React, { useState, useMemo } from 'react';
+import { View, Text, Button, Image } from '@tarojs/components';
+import Taro, { useDidShow } from '@tarojs/taro';
 import styles from './index.module.scss';
 import RiskBadge from '@/components/RiskBadge';
-import { mockHistory } from '@/data/mockRumors';
+import { mockRumors } from '@/data/mockRumors';
+import { HistoryItem, Rumor } from '@/types/rumor';
 import classnames from 'classnames';
 
-const inputTypeMap = {
-  text: '文',
-  image: '图',
-  link: '链'
+const STORAGE_KEY_HISTORY = 'local_identify_history';
+const STORAGE_KEY_REPORTS = 'local_report_records';
+
+const inputTypeMap: Record<HistoryItem['inputType'], { icon: string; label: string; color: string }> = {
+  text: { icon: '文', label: '文字', color: '#2BA471' },
+  image: { icon: '图', label: '截图', color: '#1890FF' },
+  link: { icon: '链', label: '链接', color: '#722ED1' }
 };
 
 const MinePage: React.FC = () => {
-  const handleTapHistory = (h: typeof mockHistory[0]) => {
-    console.log('[我的] 点击历史记录：', h.id);
-    if (h.matchedRumor) {
-      Taro.navigateTo({ url: `/pages/result/index?id=${h.matchedRumor}` });
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [reportCount, setReportCount] = useState(0);
+
+  const loadData = () => {
+    try {
+      const data = Taro.getStorageSync(STORAGE_KEY_HISTORY);
+      if (data && Array.isArray(data)) {
+        setHistory(data as HistoryItem[]);
+      }
+    } catch (e) {}
+    try {
+      const reports = Taro.getStorageSync(STORAGE_KEY_REPORTS);
+      if (reports && Array.isArray(reports)) {
+        setReportCount(reports.length);
+      } else {
+        setReportCount(3);
+      }
+    } catch (e) {
+      setReportCount(3);
     }
+  };
+
+  useDidShow(() => {
+    loadData();
+  });
+
+  const displayHistory = history.length > 0
+    ? history
+    : ([
+      { id: 'demo_text', inputType: 'text' as const, inputText: '自来水喝了会致癌？', matchedRumor: 'r001', riskLevel: 'high' as const, checkedAt: '2026-06-18 09:30' },
+      { id: 'demo_image', inputType: 'image' as const, matchedRumor: 'r005', riskLevel: 'high' as const, checkedAt: '2026-06-16 14:20' },
+      { id: 'demo_link', inputType: 'link' as const, matchedRumor: 'r010', riskLevel: 'low' as const, checkedAt: '2026-06-15 18:45' }
+    ] as HistoryItem[]);
+
+  const isRealData = history.length > 0;
+
+  const getHistoryDisplayText = (h: HistoryItem): string => {
+    if (h.inputText) return h.inputText;
+    if (h.inputLink) return h.inputLink.length > 40 ? h.inputLink.substring(0, 40) + '…' : h.inputLink;
+    if (h.ocrTexts && h.ocrTexts.length > 0) return h.ocrTexts[0];
+    const rumor = mockRumors.find((r: Rumor) => r.id === h.matchedRumor);
+    if (rumor) return rumor.title;
+    return `识别的${inputTypeMap[h.inputType].label}内容`;
+  };
+
+  const buildResultUrl = (h: HistoryItem): string => {
+    const params: string[] = [];
+    if (h.matchedRumor) params.push(`id=${h.matchedRumor}`);
+    if (h.inputType) params.push(`type=${h.inputType}`);
+    if (h.inputText) params.push(`input=${encodeURIComponent(h.inputText)}`);
+    if (h.inputLink) params.push(`link=${encodeURIComponent(h.inputLink)}`);
+    if (h.inputImage) params.push(`image=${encodeURIComponent(h.inputImage)}`);
+    if (h.ocrTexts && h.ocrTexts.length > 0) params.push(`ocr=${encodeURIComponent(h.ocrTexts.join('||'))}`);
+    if (h.candidateRumors && h.candidateRumors.length > 0) params.push(`candidates=${encodeURIComponent(h.candidateRumors.join(','))}`);
+    return `/pages/result/index?${params.join('&')}`;
+  };
+
+  const handleTapHistory = (h: HistoryItem) => {
+    console.log('[我的] 点击历史记录：', h.id);
+    Taro.navigateTo({ url: buildResultUrl(h) });
   };
 
   const handleTapMenuItem = (key: string) => {
     console.log('[我的] 点击菜单项：', key);
     Taro.showToast({ title: `${key} 功能开发中`, icon: 'none' });
   };
+
+  const handleClearHistory = () => {
+    if (!isRealData) return;
+    Taro.showModal({
+      title: '确认清除',
+      content: '确定要清除所有识别历史吗？此操作不可恢复。',
+      success: (res) => {
+        if (res.confirm) {
+          try { Taro.removeStorageSync(STORAGE_KEY_HISTORY); } catch (e) {}
+          setHistory([]);
+          Taro.showToast({ title: '已清除', icon: 'success' });
+        }
+      }
+    });
+  };
+
+  const totalHistoryCount = Math.max(history.length, 3);
 
   return (
     <View className={styles.pageContainer}>
@@ -39,7 +115,7 @@ const MinePage: React.FC = () => {
 
       <View className={styles.statsCard}>
         <View className={styles.statItem}>
-          <Text className={styles.statNum}>{mockHistory.length}</Text>
+          <Text className={styles.statNum}>{totalHistoryCount}</Text>
           <Text className={styles.statName}>识别次数</Text>
         </View>
         <View className={styles.statItem}>
@@ -51,30 +127,54 @@ const MinePage: React.FC = () => {
           <Text className={styles.statName}>分享家人</Text>
         </View>
         <View className={styles.statItem}>
-          <Text className={styles.statNum}>2</Text>
+          <Text className={styles.statNum}>{reportCount}</Text>
           <Text className={styles.statName}>上报线索</Text>
         </View>
       </View>
 
       <View className={styles.historySection}>
-        <Text className={styles.sectionTitle}>最近识别</Text>
+        <View className={styles.historyHeader}>
+          <Text className={styles.sectionTitle}>最近识别</Text>
+          {isRealData && (
+            <Text className={styles.historyAction} onClick={handleClearHistory}>清除</Text>
+          )}
+          {!isRealData && (
+            <Text className={styles.historyDemoTip}>示例数据</Text>
+          )}
+        </View>
         <View className={styles.historyList}>
-          {mockHistory.map((h) => (
-            <View
-              key={h.id}
-              className={styles.historyItem}
-              onClick={() => handleTapHistory(h)}
-            >
-              <View className={styles.historyIcon}>{inputTypeMap[h.inputType]}</View>
-              <View className={styles.historyInfo}>
-                <Text className={styles.historyText}>
-                  {h.inputText || `查看的${h.riskLevel === 'high' ? '高风险' : ''}消息`}
-                </Text>
-                <Text className={styles.historyTime}>{h.checkedAt}</Text>
+          {displayHistory.map((h) => {
+            const typeInfo = inputTypeMap[h.inputType];
+            return (
+              <View
+                key={h.id}
+                className={styles.historyItem}
+                onClick={() => handleTapHistory(h)}
+              >
+                <View className={styles.historyIcon} style={{ background: `${typeInfo.color}22`, color: typeInfo.color }}>
+                  {typeInfo.icon}
+                </View>
+                <View className={styles.historyInfo}>
+                  {h.inputImage && h.inputType === 'image' && (
+                    <View className={styles.historyThumbRow}>
+                      <Image src={h.inputImage} className={styles.historyThumb} mode="aspectFill" />
+                      <Text className={styles.historyText}>{getHistoryDisplayText(h)}</Text>
+                    </View>
+                  )}
+                  {!h.inputImage && (
+                    <Text className={styles.historyText}>{getHistoryDisplayText(h)}</Text>
+                  )}
+                  <View className={styles.historyMeta}>
+                    <Text className={styles.historyTypeTag} style={{ color: typeInfo.color, background: `${typeInfo.color}15` }}>
+                      {typeInfo.label}识别
+                    </Text>
+                    <Text className={styles.historyTime}>{h.checkedAt}</Text>
+                  </View>
+                </View>
+                <RiskBadge level={h.riskLevel} showLabel={false} />
               </View>
-              <RiskBadge level={h.riskLevel} showLabel={false} />
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
 

@@ -170,6 +170,28 @@
   background: #e8e8e8;
 }
 
+.linkPlatforms {
+  margin-top: $spacing-md;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.platformTip {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.platformTag {
+  padding: 4rpx 16rpx;
+  background: $color-bg-primary-soft;
+  color: $color-primary;
+  border-radius: $radius-round;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
 .inputOptionIcon {
   width: 88rpx;
   height: 88rpx;

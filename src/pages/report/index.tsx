@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Textarea, Input, Button } from '@tarojs/components';
-import Taro, { useDidShow } from '@tarojs/taro';
+import Taro, { useDidShow, useRouter } from '@tarojs/taro';
 import styles from './index.module.scss';
 import ChannelTag from '@/components/ChannelTag';
 import { reportChannelOptions } from '@/data/mockChannels';
@@ -17,7 +17,9 @@ const defaultMockReports: ReportRecord[] = [
     channelLabel: '小区业主群',
     channelDetail: '阳光花园3栋业主群',
     reportedAt: '2026-06-18 09:20',
-    status: 'resolved'
+    status: 'resolved',
+    relatedRumorId: 'r001',
+    relatedRumorTitle: '某地自来水致癌？别信！'
   },
   {
     id: 'rep002',
@@ -26,7 +28,9 @@ const defaultMockReports: ReportRecord[] = [
     channelLabel: '微信朋友圈',
     channelDetail: '',
     reportedAt: '2026-06-16 20:15',
-    status: 'reviewed'
+    status: 'reviewed',
+    relatedRumorId: 'r005',
+    relatedRumorTitle: '西瓜打了甜味剂？别再传了'
   },
   {
     id: 'rep003',
@@ -35,7 +39,9 @@ const defaultMockReports: ReportRecord[] = [
     channelLabel: '亲友家庭群',
     channelDetail: '快乐养生大家庭群',
     reportedAt: '2026-06-15 14:30',
-    status: 'pending'
+    status: 'pending',
+    relatedRumorId: 'r002',
+    relatedRumorTitle: '吃大蒜能防新冠？不靠谱'
   }
 ];
 
@@ -57,11 +63,51 @@ const loadReportsFromStorage = (): ReportRecord[] => {
   return defaultMockReports;
 };
 
+const parseQuery = (query: string): Record<string, string> => {
+  const result: Record<string, string> = {};
+  if (!query) return result;
+  query.split('&').forEach(pair => {
+    const [k, v] = pair.split('=');
+    if (k && v !== undefined) {
+      try { result[k] = decodeURIComponent(v); }
+      catch (e) { result[k] = v; }
+    }
+  });
+  return result;
+};
+
 const ReportPage: React.FC = () => {
+  const router = useRouter();
   const [selectedChannelKey, setSelectedChannelKey] = useState<string>('');
   const [channelDetail, setChannelDetail] = useState('');
   const [content, setContent] = useState('');
   const [reports, setReports] = useState<ReportRecord[]>(defaultMockReports);
+  const [relatedRumor, setRelatedRumor] = useState<{ id: string; title: string; content?: string } | null>(null);
+
+  useEffect(() => {
+    const params = { ...router.params } as Record<string, string>;
+    try {
+      const pending = Taro.getStorageSync('pending_report_params');
+      if (pending && typeof pending === 'string') {
+        const pendParsed = parseQuery(pending);
+        Object.assign(params, pendParsed);
+        Taro.removeStorageSync('pending_report_params');
+      }
+    } catch (e) {}
+
+    if (params.rumorId || params.rumorTitle) {
+      setRelatedRumor({
+        id: params.rumorId || '',
+        title: params.rumorTitle || '',
+        content: params.rumorContent || ''
+      });
+      if (params.rumorContent) {
+        setContent(`在${params.sourceType === 'link' ? '网上看到' : params.sourceType === 'image' ? '截图里看到' : '群里看到'}：${params.rumorTitle}。具体情况：${params.rumorContent}`);
+      } else if (params.rumorTitle) {
+        setContent(`谣言内容与"${params.rumorTitle}"相关，在群里/网上被大量转发。`);
+      }
+    }
+  }, []);
 
   useDidShow(() => {
     const stored = loadReportsFromStorage();
@@ -79,6 +125,11 @@ const ReportPage: React.FC = () => {
     }
   };
 
+  const handleClearRelated = () => {
+    setRelatedRumor(null);
+    setContent('');
+  };
+
   const handleSubmit = () => {
     if (!canSubmit || !selectedOption) {
       Taro.showToast({ title: '请填写必要信息', icon: 'none' });
@@ -91,7 +142,9 @@ const ReportPage: React.FC = () => {
       channelLabel: selectedOption.label,
       channelDetail: channelDetail.trim(),
       reportedAt: new Date().toLocaleString('zh-CN'),
-      status: 'pending'
+      status: 'pending',
+      relatedRumorId: relatedRumor?.id || undefined,
+      relatedRumorTitle: relatedRumor?.title || undefined
     };
     const nextReports = [newReport, ...reports];
     setReports(nextReports);
@@ -99,6 +152,7 @@ const ReportPage: React.FC = () => {
     setSelectedChannelKey('');
     setChannelDetail('');
     setContent('');
+    setRelatedRumor(null);
     Taro.showToast({ title: '感谢您的反馈！', icon: 'success' });
   };
 
@@ -130,6 +184,23 @@ const ReportPage: React.FC = () => {
 
       <View className={styles.formSection}>
         <Text className={styles.sectionTitle}>补充谣言传播渠道</Text>
+
+        {relatedRumor && relatedRumor.title && (
+          <View className={styles.relatedRumorBox}>
+            <View className={styles.relatedHeader}>
+              <Text className={styles.relatedTitle}>🔗 关联的识别结果</Text>
+              <Text className={styles.relatedClear} onClick={handleClearRelated}>取消关联</Text>
+            </View>
+            <View className={styles.relatedContent}>
+              <Text className={styles.relatedRumorTitle}>{relatedRumor.title}</Text>
+              {relatedRumor.content && (
+                <Text className={styles.relatedRumorContent}>
+                  识别内容："{relatedRumor.content.length > 60 ? relatedRumor.content.substring(0, 60) + '…' : relatedRumor.content}"
+                </Text>
+              )}
+            </View>
+          </View>
+        )}
 
         <View className={styles.formGroup}>
           <Text className={styles.formLabel}>
@@ -215,6 +286,12 @@ const ReportPage: React.FC = () => {
                     {statusText[rep.status]}
                   </Text>
                 </View>
+                {rep.relatedRumorTitle && (
+                  <View className={styles.historyRelatedRow}>
+                    <Text className={styles.historyRelatedLabel}>🔗 关联谣言：</Text>
+                    <Text className={styles.historyRelatedTitle}>{rep.relatedRumorTitle}</Text>
+                  </View>
+                )}
                 <View className={styles.historyMeta}>
                   <View style={{ display: 'flex', alignItems: 'center', gap: '12rpx', flexWrap: 'wrap' }}>
                     <ChannelTag type={rep.channel} />

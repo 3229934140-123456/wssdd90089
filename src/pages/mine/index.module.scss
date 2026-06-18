@@ -258,10 +258,68 @@
   margin: $spacing-xl $page-padding 0;
 }
 
+.historyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.historyAction {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  padding: 6rpx 20rpx;
+  background: $color-bg-page;
+  border-radius: $radius-round;
+
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.historyDemoTip {
+  font-size: $font-size-xs;
+  color: $color-warning;
+  padding: 4rpx 16rpx;
+  background: #fffbe6;
+  border-radius: $radius-round;
+  border: 2rpx solid #ffe58f;
+}
+
 .historyList {
   display: flex;
   flex-direction: column;
   gap: $spacing-sm;
+}
+
+.historyThumbRow {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.historyThumb {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-sm;
+  background: #f0f0f0;
+  flex-shrink: 0;
+  border: 2rpx solid $color-divider;
+}
+
+.historyMeta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 8rpx;
+  flex-wrap: wrap;
+}
+
+.historyTypeTag {
+  padding: 2rpx 12rpx;
+  border-radius: $radius-round;
+  font-size: 20rpx;
+  font-weight: $font-weight-medium;
 }
 
 .historyItem {
